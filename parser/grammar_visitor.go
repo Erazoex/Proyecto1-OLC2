@@ -17,17 +17,20 @@ type GrammarVisitor interface {
 	// Visit a parse tree produced by GrammarParser#stmt.
 	VisitStmt(ctx *StmtContext) interface{}
 
-	// Visit a parse tree produced by GrammarParser#declstmt.
-	VisitDeclstmt(ctx *DeclstmtContext) interface{}
+	// Visit a parse tree produced by GrammarParser#declstmtWithTypeAndExpr.
+	VisitDeclstmtWithTypeAndExpr(ctx *DeclstmtWithTypeAndExprContext) interface{}
 
-	// Visit a parse tree produced by GrammarParser#printstmt.
-	VisitPrintstmt(ctx *PrintstmtContext) interface{}
+	// Visit a parse tree produced by GrammarParser#declstmtWithExpr.
+	VisitDeclstmtWithExpr(ctx *DeclstmtWithExprContext) interface{}
 
-	// Visit a parse tree produced by GrammarParser#ifstmt.
-	VisitIfstmt(ctx *IfstmtContext) interface{}
+	// Visit a parse tree produced by GrammarParser#declstmtWithType.
+	VisitDeclstmtWithType(ctx *DeclstmtWithTypeContext) interface{}
 
-	// Visit a parse tree produced by GrammarParser#forstmt.
-	VisitForstmt(ctx *ForstmtContext) interface{}
+	// Visit a parse tree produced by GrammarParser#asignstmt.
+	VisitAsignstmt(ctx *AsignstmtContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#primitiveType.
+	VisitPrimitiveType(ctx *PrimitiveTypeContext) interface{}
 
 	// Visit a parse tree produced by GrammarParser#DoubleExpr.
 	VisitDoubleExpr(ctx *DoubleExprContext) interface{}
@@ -58,4 +61,7 @@ type GrammarVisitor interface {
 
 	// Visit a parse tree produced by GrammarParser#UnaryExpr.
 	VisitUnaryExpr(ctx *UnaryExprContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#CharExpr.
+	VisitCharExpr(ctx *CharExprContext) interface{}
 }

@@ -1,9 +1,11 @@
 package grammar
 
-import "proyecto2/parser"
+import (
+	"proyecto2/parser"
+)
 
 /*
-	Funcion principal para la utilizacion de operadores
+Funcion principal para la utilizacion de operadores
 */
 func (v *Visitor) VisitOpExpr(ctx *parser.OpExprContext) Value {
 	left := v.Visit(ctx.GetLeft())
@@ -43,28 +45,28 @@ func (v *Visitor) VisitOpExpr(ctx *parser.OpExprContext) Value {
 
 func Addition(leftValue, rightValue Value) Value {
 	switch leftValue.value.(type) {
-	case int:
+	case int64:
 		switch rightValue.value.(type) {
-		case int:
-			return Value{value: leftValue.value.(int) + rightValue.value.(int)}
+		case int64:
+			return Value{value: leftValue.value.(int64) + rightValue.value.(int64), Type: INT}
 		case float64:
-			return Value{value: float64(leftValue.value.(int)) + rightValue.value.(float64)}
+			return Value{value: float64(leftValue.value.(int64)) + rightValue.value.(float64), Type: FLOAT}
 		default:
 			return Value{value: false}
 		}
 	case float64:
 		switch rightValue.value.(type) {
-		case int:
-			return Value{value: leftValue.value.(float64) + float64(rightValue.value.(int))}
+		case int64:
+			return Value{value: leftValue.value.(float64) + float64(rightValue.value.(int64)), Type: FLOAT}
 		case float64:
-			return Value{value: leftValue.value.(float64) + rightValue.value.(float64)}
+			return Value{value: leftValue.value.(float64) + rightValue.value.(float64), Type: FLOAT}
 		default:
 			return Value{value: false}
 		}
 	case string:
 		switch rightValue.value.(type) {
 		case string:
-			return Value{value: leftValue.value.(string) + rightValue.value.(string)}
+			return Value{value: leftValue.value.(string) + rightValue.value.(string), Type: STRING}
 		default:
 			return Value{value: false}
 		}
@@ -75,21 +77,21 @@ func Addition(leftValue, rightValue Value) Value {
 
 func Subtraction(leftValue, rightValue Value) Value {
 	switch leftValue.value.(type) {
-	case int:
+	case int64:
 		switch rightValue.value.(type) {
-		case int:
-			return Value{value: leftValue.value.(int) - rightValue.value.(int)}
+		case int64:
+			return Value{value: leftValue.value.(int64) - rightValue.value.(int64), Type: INT}
 		case float64:
-			return Value{value: float64(leftValue.value.(int)) - rightValue.value.(float64)}
+			return Value{value: float64(leftValue.value.(int64)) - rightValue.value.(float64), Type: FLOAT}
 		default:
 			return Value{value: false}
 		}
 	case float64:
 		switch rightValue.value.(type) {
-		case int:
-			return Value{value: leftValue.value.(float64) - float64(rightValue.value.(int))}
+		case int64:
+			return Value{value: leftValue.value.(float64) - float64(rightValue.value.(int64)), Type: FLOAT}
 		case float64:
-			return Value{value: leftValue.value.(float64) - rightValue.value.(float64)}
+			return Value{value: leftValue.value.(float64) - rightValue.value.(float64), Type: FLOAT}
 		default:
 			return Value{value: false}
 		}
@@ -100,21 +102,21 @@ func Subtraction(leftValue, rightValue Value) Value {
 
 func Multiplication(leftValue, rightValue Value) Value {
 	switch leftValue.value.(type) {
-	case int:
+	case int64:
 		switch rightValue.value.(type) {
-		case int:
-			return Value{value: leftValue.value.(int) * rightValue.value.(int)}
+		case int64:
+			return Value{value: leftValue.value.(int64) * rightValue.value.(int64), Type: INT}
 		case float64:
-			return Value{value: float64(leftValue.value.(int)) * rightValue.value.(float64)}
+			return Value{value: float64(leftValue.value.(int64)) * rightValue.value.(float64), Type: FLOAT}
 		default:
 			return Value{value: false}
 		}
 	case float64:
 		switch rightValue.value.(type) {
-		case int:
-			return Value{value: leftValue.value.(float64) * float64(rightValue.value.(int))}
+		case int64:
+			return Value{value: leftValue.value.(float64) * float64(rightValue.value.(int64)), Type: FLOAT}
 		case float64:
-			return Value{value: leftValue.value.(float64) * rightValue.value.(float64)}
+			return Value{value: leftValue.value.(float64) * rightValue.value.(float64), Type: FLOAT}
 		default:
 			return Value{value: false}
 		}
@@ -125,21 +127,21 @@ func Multiplication(leftValue, rightValue Value) Value {
 
 func Division(leftValue, rightValue Value) Value {
 	switch leftValue.value.(type) {
-	case int:
+	case int64:
 		switch rightValue.value.(type) {
-		case int:
-			return Value{value: leftValue.value.(int) / rightValue.value.(int)}
+		case int64:
+			return Value{value: float64(leftValue.value.(int64)) / float64(rightValue.value.(int64)), Type: INT}
 		case float64:
-			return Value{value: float64(leftValue.value.(int)) / rightValue.value.(float64)}
+			return Value{value: float64(leftValue.value.(int64)) / rightValue.value.(float64), Type: FLOAT}
 		default:
 			return Value{value: false}
 		}
 	case float64:
 		switch rightValue.value.(type) {
-		case int:
-			return Value{value: leftValue.value.(float64) / float64(rightValue.value.(int))}
+		case int64:
+			return Value{value: leftValue.value.(float64) / float64(rightValue.value.(int64)), Type: FLOAT}
 		case float64:
-			return Value{value: leftValue.value.(float64) / rightValue.value.(float64)}
+			return Value{value: leftValue.value.(float64) / rightValue.value.(float64), Type: FLOAT}
 		default:
 			return Value{value: false}
 		}
@@ -150,10 +152,10 @@ func Division(leftValue, rightValue Value) Value {
 
 func Module(leftValue, rightValue Value) Value {
 	switch leftValue.value.(type) {
-	case int:
+	case int64:
 		switch rightValue.value.(type) {
-		case int:
-			return Value{value: leftValue.value.(int) % rightValue.value.(int)}
+		case int64:
+			return Value{value: leftValue.value.(int64) % rightValue.value.(int64), Type: INT}
 		default:
 			return Value{value: false}
 		}
@@ -164,21 +166,21 @@ func Module(leftValue, rightValue Value) Value {
 
 func GreaterOrEqual(leftValue, rightValue Value) Value {
 	switch leftValue.value.(type) {
-	case int:
+	case int64:
 		switch rightValue.value.(type) {
-		case int:
-			return Value{value: leftValue.value.(int) >= rightValue.value.(int)}
+		case int64:
+			return Value{value: leftValue.value.(int64) >= rightValue.value.(int64), Type: BOOL}
 		case float64:
-			return Value{value: float64(leftValue.value.(int)) >= rightValue.value.(float64)}
+			return Value{value: float64(leftValue.value.(int64)) >= rightValue.value.(float64), Type: BOOL}
 		default:
 			return Value{value: false}
 		}
 	case float64:
 		switch rightValue.value.(type) {
-		case int:
-			return Value{value: leftValue.value.(float64) >= float64(rightValue.value.(int))}
+		case int64:
+			return Value{value: leftValue.value.(float64) >= float64(rightValue.value.(int64)), Type: BOOL}
 		case float64:
-			return Value{value: leftValue.value.(float64) >= rightValue.value.(float64)}
+			return Value{value: leftValue.value.(float64) >= rightValue.value.(float64), Type: BOOL}
 		default:
 			return Value{value: false}
 		}
@@ -189,21 +191,21 @@ func GreaterOrEqual(leftValue, rightValue Value) Value {
 
 func Greater(leftValue, rightValue Value) Value {
 	switch leftValue.value.(type) {
-	case int:
+	case int64:
 		switch rightValue.value.(type) {
-		case int:
-			return Value{value: leftValue.value.(int) > rightValue.value.(int)}
+		case int64:
+			return Value{value: leftValue.value.(int64) > rightValue.value.(int64), Type: BOOL}
 		case float64:
-			return Value{value: float64(leftValue.value.(int)) > rightValue.value.(float64)}
+			return Value{value: float64(leftValue.value.(int64)) > rightValue.value.(float64), Type: BOOL}
 		default:
 			return Value{value: false}
 		}
 	case float64:
 		switch rightValue.value.(type) {
-		case int:
-			return Value{value: leftValue.value.(float64) > float64(rightValue.value.(int))}
+		case int64:
+			return Value{value: leftValue.value.(float64) > float64(rightValue.value.(int64)), Type: BOOL}
 		case float64:
-			return Value{value: leftValue.value.(float64) > rightValue.value.(float64)}
+			return Value{value: leftValue.value.(float64) > rightValue.value.(float64), Type: BOOL}
 		default:
 			return Value{value: false}
 		}
@@ -214,21 +216,21 @@ func Greater(leftValue, rightValue Value) Value {
 
 func LessOrEqual(leftValue, rightValue Value) Value {
 	switch leftValue.value.(type) {
-	case int:
+	case int64:
 		switch rightValue.value.(type) {
-		case int:
-			return Value{value: leftValue.value.(int) <= rightValue.value.(int)}
+		case int64:
+			return Value{value: leftValue.value.(int64) <= rightValue.value.(int64), Type: BOOL}
 		case float64:
-			return Value{value: float64(leftValue.value.(int)) <= rightValue.value.(float64)}
+			return Value{value: float64(leftValue.value.(int64)) <= rightValue.value.(float64), Type: BOOL}
 		default:
 			return Value{value: false}
 		}
 	case float64:
 		switch rightValue.value.(type) {
-		case int:
-			return Value{value: leftValue.value.(float64) <= float64(rightValue.value.(int))}
+		case int64:
+			return Value{value: leftValue.value.(float64) <= float64(rightValue.value.(int64)), Type: BOOL}
 		case float64:
-			return Value{value: leftValue.value.(float64) <= rightValue.value.(float64)}
+			return Value{value: leftValue.value.(float64) <= rightValue.value.(float64), Type: BOOL}
 		default:
 			return Value{value: false}
 		}
@@ -239,21 +241,21 @@ func LessOrEqual(leftValue, rightValue Value) Value {
 
 func Less(leftValue, rightValue Value) Value {
 	switch leftValue.value.(type) {
-	case int:
+	case int64:
 		switch rightValue.value.(type) {
-		case int:
-			return Value{value: leftValue.value.(int) < rightValue.value.(int)}
+		case int64:
+			return Value{value: leftValue.value.(int64) < rightValue.value.(int64), Type: BOOL}
 		case float64:
-			return Value{value: float64(leftValue.value.(int)) < rightValue.value.(float64)}
+			return Value{value: float64(leftValue.value.(int64)) < rightValue.value.(float64), Type: BOOL}
 		default:
 			return Value{value: false}
 		}
 	case float64:
 		switch rightValue.value.(type) {
-		case int:
-			return Value{value: leftValue.value.(float64) < float64(rightValue.value.(int))}
+		case int64:
+			return Value{value: leftValue.value.(float64) < float64(rightValue.value.(int64)), Type: BOOL}
 		case float64:
-			return Value{value: leftValue.value.(float64) < rightValue.value.(float64)}
+			return Value{value: leftValue.value.(float64) < rightValue.value.(float64), Type: BOOL}
 		default:
 			return Value{value: false}
 		}
@@ -263,11 +265,11 @@ func Less(leftValue, rightValue Value) Value {
 }
 
 func Equal(leftValue, rightValue Value) Value {
-	return Value{value: leftValue.value == rightValue}
+	return Value{value: leftValue.value == rightValue, Type: BOOL}
 }
 
 func NotEqual(leftValue, rightValue Value) Value {
-	return Value{value: leftValue.value != rightValue}
+	return Value{value: leftValue.value != rightValue, Type: BOOL}
 }
 
 func And(leftValue, rightValue Value) Value {
@@ -275,7 +277,7 @@ func And(leftValue, rightValue Value) Value {
 	case bool:
 		switch rightValue.value.(type) {
 		case bool:
-			return Value{value: leftValue.value.(bool) && rightValue.value.(bool)}
+			return Value{value: leftValue.value.(bool) && rightValue.value.(bool), Type: BOOL}
 		default:
 			return Value{value: false}
 		}
@@ -289,7 +291,7 @@ func Or(leftValue, rightValue Value) Value {
 	case bool:
 		switch rightValue.value.(type) {
 		case bool:
-			return Value{value: leftValue.value.(bool) || rightValue.value.(bool)}
+			return Value{value: leftValue.value.(bool) || rightValue.value.(bool), Type: BOOL}
 		default:
 			return Value{value: false}
 		}

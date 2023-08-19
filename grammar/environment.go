@@ -52,19 +52,41 @@ func (e *Environment) EditableValue(id string) bool {
 	return false
 }
 
-func (e *Environment) UpdateValue(val Value) bool {
-	if !e.EditableValue(val.Id) {
-		// TODO: implementar error aqui
-		fmt.Println("la variable es una constante", val.Id)
-		return false
+func (e *Environment) UpdateValue(newValue Value) bool {
+	temp := e
+	for temp != nil {
+		val, ok := temp.tablaSimbolos[newValue.Id]
+		if ok && !temp.EditableValue(newValue.Id) {
+			// TODO: implementar error aqui
+			fmt.Println("la variable es una constante", newValue.Id)
+			return false
+		}
+		if ok && !(val.Type == newValue.Type) && val.Type != NIL {
+			// TODO: implememntar error aqui
+			fmt.Println("la variable", newValue.Id, "no es del mismo tipo", newValue.Type)
+			return false
+		}
+		if ok {
+			val.value = newValue.value
+			temp.tablaSimbolos[newValue.Id] = val
+			return true
+		}
+		temp = temp.padre
 	}
-	temp := e.tablaSimbolos[val.Id]
-	if !(temp.Type == val.Type) && val.Type != NIL {
-		// TODO: implementar error aqui
-		fmt.Println("la variable", val.Id, "no es del mismo tipo", val.Type)
-		return false
+	// TODO: implementar error aqui
+	return false
+}
+
+func (e *Environment) GetValue(id string) (Value, bool) {
+	var val Value
+	var ok bool
+	temp := e
+	for temp != nil {
+		val, ok = temp.tablaSimbolos[id]
+		if ok {
+			return val, ok
+		}
+		temp = temp.padre
 	}
-	temp.value = val.value
-	e.tablaSimbolos[val.Id] = temp
-	return true
+	return val, ok
 }

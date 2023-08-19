@@ -29,6 +29,21 @@ type GrammarVisitor interface {
 	// Visit a parse tree produced by GrammarParser#asignstmt.
 	VisitAsignstmt(ctx *AsignstmtContext) interface{}
 
+	// Visit a parse tree produced by GrammarParser#incstmt.
+	VisitIncstmt(ctx *IncstmtContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#decstmt.
+	VisitDecstmt(ctx *DecstmtContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#ifSimple.
+	VisitIfSimple(ctx *IfSimpleContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#ifWithElse.
+	VisitIfWithElse(ctx *IfWithElseContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#ifWithElseIf.
+	VisitIfWithElseIf(ctx *IfWithElseIfContext) interface{}
+
 	// Visit a parse tree produced by GrammarParser#primitiveType.
 	VisitPrimitiveType(ctx *PrimitiveTypeContext) interface{}
 

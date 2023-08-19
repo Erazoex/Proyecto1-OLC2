@@ -99,6 +99,23 @@ func Execute() {
 
 	char = "otra cadena" //error tipos incompatibles (Character, String)
 
+	// declaracion de constantes
+
+	// Incorrecto, la constante debe tener un valor asignado 
+	let v: String?
+
+	// correcto, declaracion de una constante tipo Int con valor
+	let v1= 10
+	
+	let v11:Int = 10.01 // Error: no se puede asignar un Float a un Int
+
+	let v2:Float = 10.2 // correcto
+	
+	let v3 = "esto es una variable" // correcto constante tipo String
+
+	let v4:Bool= true // correcto
+
+	v1 = 100
 	`
 	inputStream := antlr.NewInputStream(input)
 	lexer := parser.NewGrammarLexer(inputStream)

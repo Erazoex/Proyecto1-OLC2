@@ -10,7 +10,8 @@ T_BOOL      :   'Bool';
 // Palabras reservadas
 VAR         :   'var';
 LET         :   'let';
-
+IF          :   'if';
+ELSE        :   'else';
 
 // regular expressions
 DOUBLE      :   [0-9]+('.'[0-9]+);
@@ -34,6 +35,8 @@ block
 stmt
     : declstmt
     | asignstmt
+    | incstmt
+    | decstmt
     ;
 
 declstmt
@@ -44,6 +47,20 @@ declstmt
 
 asignstmt
     : ID '=' expr
+    ;
+
+incstmt
+    : ID '+=' expr
+    ;
+
+decstmt
+    : ID '-=' expr
+    ;
+
+ifstmt
+    : IF expr '{' block '}'                     # ifSimple
+    | IF expr '{' block '}' ELSE '{' block '}'  # ifWithElse
+    | IF expr '{' block '}' ELSE ifstmt         # ifWithElseIf
     ;
 
 vartype

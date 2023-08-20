@@ -56,6 +56,18 @@ func (v *BaseGrammarVisitor) VisitIfWithElseIf(ctx *IfWithElseIfContext) interfa
 	return v.VisitChildren(ctx)
 }
 
+func (v *BaseGrammarVisitor) VisitSwitchstmt(ctx *SwitchstmtContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGrammarVisitor) VisitSwitchcase(ctx *SwitchcaseContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGrammarVisitor) VisitPrintlnstmt(ctx *PrintlnstmtContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
 func (v *BaseGrammarVisitor) VisitPrimitiveType(ctx *PrimitiveTypeContext) interface{} {
 	return v.VisitChildren(ctx)
 }

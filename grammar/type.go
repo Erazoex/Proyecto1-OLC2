@@ -10,5 +10,7 @@ const (
 	BOOL
 	CHAR
 	NIL
+	BREAK
+	CONTINUE
 	ACCEPTED
 )

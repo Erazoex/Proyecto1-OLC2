@@ -18,6 +18,15 @@ func (v *Visitor) VisitStmt(ctx *parser.StmtContext) Value {
 	if ctx.Decstmt() != nil {
 		return v.Visit(ctx.Decstmt())
 	}
+	if ctx.Ifstmt() != nil {
+		return v.Visit(ctx.Ifstmt())
+	}
+	if ctx.Switchstmt() != nil {
+		return v.Visit(ctx.Switchstmt())
+	}
+	if ctx.Printlnstmt() != nil {
+		return v.Visit(ctx.Printlnstmt())
+	}
 	return Value{value: true, Type: ACCEPTED}
 }
 
@@ -187,3 +196,63 @@ func (v *Visitor) VisitDecstmt(ctx *parser.DecstmtContext) Value {
 }
 
 // IF
+func (v *Visitor) VisitIfSimple(ctx *parser.IfSimpleContext) Value {
+	condition := v.Visit(ctx.Expr())
+	if condition.Type != BOOL {
+		// TODO: implementar error aqui
+		return Value{value: false}
+	}
+	if condition.value == true {
+		v.Visit(ctx.Block())
+	}
+	return Value{value: true, Type: ACCEPTED}
+}
+
+func (v *Visitor) VisitIfWithElse(ctx *parser.IfWithElseContext) Value {
+	condition := v.Visit(ctx.Expr())
+	if condition.Type != BOOL {
+		// TODO: implementar error aqui
+		return Value{value: false}
+	}
+	if condition.value == true {
+		v.Visit(ctx.GetTrueCondition())
+	} else {
+		v.Visit(ctx.GetFalseCondition())
+	}
+	return Value{value: true, Type: ACCEPTED}
+}
+
+func (v *Visitor) VisitIfWithElseIf(ctx *parser.IfWithElseIfContext) Value {
+	condition := v.Visit(ctx.Expr())
+	if condition.Type != BOOL {
+		// TODO: implementar error aqui
+		return Value{value: false}
+	}
+	if condition.value == true {
+		v.Visit(ctx.Block())
+	} else {
+		v.Visit(&ctx.IfstmtContext)
+	}
+	return Value{value: true, Type: ACCEPTED}
+}
+
+// SWITCH
+func (v *Visitor) VisitSwitchstmt(ctx *parser.SwitchstmtContext) Value {
+	exprValue := v.Visit(ctx.Expr())
+	for i := 0; ctx.Switchcase(i) != nil; i++ {
+		var transfer Value
+		if exprValue.value == v.Visit(ctx.Switchcase(i)).value {
+			transfer = v.Visit(ctx.Switchcase(i).Block())
+		}
+		if transfer.Type == BREAK {
+			break
+		}
+	}
+	return Value{value: true, Type: ACCEPTED}
+}
+
+// PRINTLN
+func (v *Visitor) VisitPrintlnstmt(ctx *parser.PrintlnstmtContext) Value {
+	fmt.Println(v.Visit(ctx.Expr()).value)
+	return Value{value: true, Type: ACCEPTED}
+}

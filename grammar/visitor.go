@@ -47,6 +47,20 @@ func (v *Visitor) Visit(tree antlr.ParseTree) Value {
 		return v.VisitDeclstmtWithType(val)
 	case *parser.AsignstmtContext:
 		return v.VisitAsignstmt(val)
+	case *parser.IncstmtContext:
+		return v.VisitIncstmt(val)
+	case *parser.DecstmtContext:
+		return v.VisitDecstmt(val)
+	case *parser.IfSimpleContext:
+		return v.VisitIfSimple(val)
+	case *parser.IfWithElseContext:
+		return v.VisitIfWithElse(val)
+	case *parser.IfWithElseIfContext:
+		return v.VisitIfWithElseIf(val)
+	case *parser.SwitchstmtContext:
+		return v.VisitSwitchstmt(val)
+	case *parser.PrintlnstmtContext:
+		return v.VisitPrintlnstmt(val)
 	}
 	return Value{value: "la funcion todavia no se ha implementado"}
 }

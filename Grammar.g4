@@ -12,6 +12,9 @@ VAR         :   'var';
 LET         :   'let';
 IF          :   'if';
 ELSE        :   'else';
+SWITCH      :   'switch';
+CASE        :   'case';
+DEFAULT     :   'default';
 
 // regular expressions
 DOUBLE      :   [0-9]+('.'[0-9]+);
@@ -37,6 +40,9 @@ stmt
     | asignstmt
     | incstmt
     | decstmt
+    | ifstmt
+    | switchstmt
+    | printlnstmt
     ;
 
 declstmt
@@ -58,9 +64,23 @@ decstmt
     ;
 
 ifstmt
-    : IF expr '{' block '}'                     # ifSimple
-    | IF expr '{' block '}' ELSE '{' block '}'  # ifWithElse
-    | IF expr '{' block '}' ELSE ifstmt         # ifWithElseIf
+    : IF expr '{' block '}'                                                     # ifSimple
+    | IF expr '{' trueCondition=block '}' ELSE '{' falseCondition=block '}'     # ifWithElse
+    | IF expr '{' block '}' ELSE ifstmt                                         # ifWithElseIf
+    ;
+
+switchstmt
+    : SWITCH expr '{' (switchcase)+ '}'
+    ;
+
+
+switchcase
+    : CASE expr ':' block
+    | DEFAULT expr ':' block
+    ;
+
+printlnstmt
+    : 'println' '(' expr ')'
     ;
 
 vartype

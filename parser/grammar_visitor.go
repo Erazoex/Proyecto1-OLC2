@@ -44,6 +44,15 @@ type GrammarVisitor interface {
 	// Visit a parse tree produced by GrammarParser#ifWithElseIf.
 	VisitIfWithElseIf(ctx *IfWithElseIfContext) interface{}
 
+	// Visit a parse tree produced by GrammarParser#switchstmt.
+	VisitSwitchstmt(ctx *SwitchstmtContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#switchcase.
+	VisitSwitchcase(ctx *SwitchcaseContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#printlnstmt.
+	VisitPrintlnstmt(ctx *PrintlnstmtContext) interface{}
+
 	// Visit a parse tree produced by GrammarParser#primitiveType.
 	VisitPrimitiveType(ctx *PrimitiveTypeContext) interface{}
 

@@ -265,7 +265,7 @@ func Less(leftValue, rightValue Value) Value {
 }
 
 func Equal(leftValue, rightValue Value) Value {
-	return Value{value: leftValue.value == rightValue, Type: BOOL}
+	return Value{value: leftValue.value == rightValue.value, Type: BOOL}
 }
 
 func NotEqual(leftValue, rightValue Value) Value {

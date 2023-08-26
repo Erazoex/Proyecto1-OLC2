@@ -3,6 +3,7 @@ package grammar
 import (
 	"fmt"
 	"proyecto2/parser"
+	"strconv"
 )
 
 func (v *Visitor) VisitStmt(ctx *parser.StmtContext) Value {
@@ -26,6 +27,9 @@ func (v *Visitor) VisitStmt(ctx *parser.StmtContext) Value {
 	}
 	if ctx.Printlnstmt() != nil {
 		return v.Visit(ctx.Printlnstmt())
+	}
+	if ctx.Whilestmt() != nil {
+		return v.Visit(ctx.Whilestmt())
 	}
 	return Value{value: true, Type: ACCEPTED}
 }
@@ -231,7 +235,7 @@ func (v *Visitor) VisitIfWithElseIf(ctx *parser.IfWithElseIfContext) Value {
 	if condition.value == true {
 		v.Visit(ctx.Block())
 	} else {
-		v.Visit(&ctx.IfstmtContext)
+		v.Visit(ctx.Ifstmt())
 	}
 	return Value{value: true, Type: ACCEPTED}
 }
@@ -239,9 +243,24 @@ func (v *Visitor) VisitIfWithElseIf(ctx *parser.IfWithElseIfContext) Value {
 // SWITCH
 func (v *Visitor) VisitSwitchstmt(ctx *parser.SwitchstmtContext) Value {
 	exprValue := v.Visit(ctx.Expr())
+	isThereAnyDefault := false
 	for i := 0; ctx.Switchcase(i) != nil; i++ {
 		var transfer Value
-		if exprValue.value == v.Visit(ctx.Switchcase(i)).value {
+		if ctx.Switchcase(i).GetCasetype().GetText() == "default" {
+			isThereAnyDefault = true
+		}
+		if isThereAnyDefault && ctx.Switchcase(i) != nil {
+			// TODO: implementar error aqui
+			// Error: no se puede declarar un case o otro default despues de un default
+			return Value{value: false}
+		}
+		option := ctx.Switchcase(i).GetCasetype().GetText()
+		switch option {
+		case "case":
+			if exprValue.value == v.Visit(ctx.Switchcase(i).Expr()).value {
+				transfer = v.Visit(ctx.Switchcase(i).Block())
+			}
+		case "default":
 			transfer = v.Visit(ctx.Switchcase(i).Block())
 		}
 		if transfer.Type == BREAK {
@@ -254,5 +273,84 @@ func (v *Visitor) VisitSwitchstmt(ctx *parser.SwitchstmtContext) Value {
 // PRINTLN
 func (v *Visitor) VisitPrintlnstmt(ctx *parser.PrintlnstmtContext) Value {
 	fmt.Println(v.Visit(ctx.Expr()).value)
+	return Value{value: true, Type: ACCEPTED}
+}
+
+// WHILE
+func (v *Visitor) VisitWhilestmt(ctx *parser.WhilestmtContext) Value {
+	newEnv := NewEnvironment(&v.environment)
+	v.environment = *newEnv
+	for {
+		condition := v.Visit(ctx.Expr())
+		if condition.Type != BOOL {
+			// TODO: implementar error aqui
+			// la condicion no es de tipo boolean
+			return Value{value: true}
+		}
+		if condition.value == true {
+			transfer := v.Visit(ctx.Block())
+			if transfer.Type == BREAK {
+				return Value{value: true, Type: ACCEPTED}
+			}
+		} else {
+			break
+		}
+	}
+	return Value{value: true, Type: ACCEPTED}
+}
+
+// FOR
+func (v *Visitor) VisitForWithExpr(ctx *parser.ForWithExprContext) Value {
+	// TODO: realizar los cambios correspondientes aqui para que se puedan usar strings y
+	// vectores
+	newEnv := NewEnvironment(&v.environment)
+	v.environment = *newEnv
+	for {
+		condition := v.Visit(ctx.Expr())
+		if condition.Type != BOOL {
+			// TODO: implementar error
+			// la condicion no es de tipo boolean
+			return Value{value: true}
+		}
+		if condition.value == true {
+			transfer := v.Visit(ctx.Block())
+			if transfer.Type == BREAK {
+				return Value{value: true, Type: ACCEPTED}
+			}
+		} else {
+			break
+		}
+	}
+	return Value{value: true, Type: ACCEPTED}
+}
+
+func (v *Visitor) VisitForWithRange(ctx *parser.ForWithRangeContext) Value {
+	newEnv := NewEnvironment(&v.environment)
+	v.environment = *newEnv
+	var forVariable Value
+	forVariable.Id = ctx.ID().GetText()
+	forVariable.value, _ = strconv.ParseInt(ctx.Forrange().GetBeginsWith().GetText(), 10, 64)
+	forVariable.Type = INT
+	v.environment.SaveValue(forVariable)
+	endValue, _ := strconv.ParseInt(ctx.Forrange().GetEndsWith().GetText(), 10, 64)
+	for {
+		variable, ok := v.environment.GetValue(ctx.GetText())
+		if !ok {
+			// TODO: implementar error aqui
+			// no se pudo obtener la variable
+			return Value{value: true}
+		}
+		if variable.value.(int64) <= endValue {
+			transfer := v.Visit(ctx.Block())
+			if transfer.Type == BREAK {
+				break
+			}
+			if transfer.Type == CONTINUE {
+				continue
+			}
+		} else {
+			return Value{value: true, Type: ACCEPTED}
+		}
+	}
 	return Value{value: true, Type: ACCEPTED}
 }

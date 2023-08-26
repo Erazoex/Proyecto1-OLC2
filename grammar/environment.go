@@ -77,6 +77,26 @@ func (e *Environment) UpdateValue(newValue Value) bool {
 	return false
 }
 
+func (e *Environment) UpdateForValue(newValue Value) bool {
+	temp := e
+	for temp != nil {
+		val, ok := temp.tablaSimbolos[newValue.Id]
+		if ok && !(val.Type == newValue.Type) && val.Type != NIL {
+			// TODO: implememntar error aqui
+			fmt.Println("la variable", newValue.Id, "no es del mismo tipo", newValue.Type)
+			return false
+		}
+		if ok {
+			val.value = newValue.value
+			temp.tablaSimbolos[newValue.Id] = val
+			return true
+		}
+		temp = temp.padre
+	}
+	// TODO: implementar error aqui
+	return false
+}
+
 func (e *Environment) GetValue(id string) (Value, bool) {
 	var val Value
 	var ok bool

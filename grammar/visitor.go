@@ -71,65 +71,26 @@ func (v *Visitor) VisitInit(ctx *parser.InitContext) Value {
 
 func Execute() {
 	input := `
-	/*
-		este es mi comentario multilinea final
-	*/
-	var valor: String?	//correcto, declaracion sin valor
+	let opcion = 15
+	if opcion + 2< (3*5)+1 {
+		println("entra en la condicion verdadera")
+	} else if opcion + 1 == 16 {
+		println("entra en la segunda condicion")
+	} else {
+		println("ultima condicion")
+	}
 
-	// correcto, declaracion de una variable tipo Int con valor
-	var valor1 = 10
-
-	var valor11:Int = 10.01	// Error: no se puede asignar un Float a un Int
-	
-	var valor2:Float = 10.2 // correcto
-
-	var valor2_1:Float= 10+1 // correcto sera 11.0
-
-	var valor3 = "esto es una variable" // correcto variable tipo string
-
-	var char:Character = "A" // correcto variable tipo Character
-
-	var valor4:Bool = true // correcto
-
-	// debe ser error ya que los tipos no son compatibles
-	var valor4_1:String = true
-
-	// debe ser un error ya que existe otra variable valor3 definida previamente
-	var valor3:Int = 10
-
-	var .58 = 4 // debe ser error porque .58 no es un nombre valido
-
-	var if = "10"// debe ser un error porque "if" es una palabra reservada
-
-	// ejemplo de asignaciones
-
-	valor1 = 200 // correcto
-
-	valor3 = "otra cadena" //correcto
-
-	valor4 = 10 //error tipos incompatibles (Iool, Int)
-
-	valor2 = 200 // error tipos incompatibles (Float, Int)
-
-	char = "otra cadena" //error tipos incompatibles (Character, String)
-
-	// declaracion de constantes
-
-	// Incorrecto, la constante debe tener un valor asignado 
-	let v: String?
-
-	// correcto, declaracion de una constante tipo Int con valor
-	let v1= 10
-	
-	let v11:Int = 10.01 // Error: no se puede asignar un Float a un Int
-
-	let v2:Float = 10.2 // correcto
-	
-	let v3 = "esto es una variable" // correcto constante tipo String
-
-	let v4:Bool= true // correcto
-
-	v1 = 100
+	let numero = 2
+	switch numero {
+	case 1:
+		println("UNO")
+	case 2:
+		println("DOS")
+	case 3:
+		println("TRES")
+	default:
+		println("NINGUNO")
+	}
 	`
 	inputStream := antlr.NewInputStream(input)
 	lexer := parser.NewGrammarLexer(inputStream)

@@ -15,6 +15,8 @@ ELSE        :   'else';
 SWITCH      :   'switch';
 CASE        :   'case';
 DEFAULT     :   'default';
+WHILE       :   'while';
+FOR         :   'for';
 
 // regular expressions
 DOUBLE      :   [0-9]+('.'[0-9]+);
@@ -43,6 +45,8 @@ stmt
     | ifstmt
     | switchstmt
     | printlnstmt
+    | whilestmt
+    | forstmt
     ;
 
 declstmt
@@ -75,12 +79,25 @@ switchstmt
 
 
 switchcase
-    : CASE expr ':' block
-    | DEFAULT expr ':' block
+    : casetype=CASE expr ':' block
+    | casetype=DEFAULT ':' block
     ;
 
 printlnstmt
     : 'println' '(' expr ')'
+    ;
+
+whilestmt
+    : WHILE expr '{' block '}'
+    ;
+
+forstmt
+    : FOR ID 'in' expr '{' block '}'        #forWithExpr
+    | FOR ID 'in' forrange '{' block '}'       #forWithRange
+    ;
+
+forrange
+    : beginsWith=INT '...' endsWith=INT
     ;
 
 vartype

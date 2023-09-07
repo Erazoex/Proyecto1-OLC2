@@ -17,6 +17,8 @@ CASE        :   'case';
 DEFAULT     :   'default';
 WHILE       :   'while';
 FOR         :   'for';
+VECTOR      :   'vector';
+FUNC        :   'func';
 
 // regular expressions
 DOUBLE      :   [0-9]+('.'[0-9]+);
@@ -84,7 +86,12 @@ switchcase
     ;
 
 printlnstmt
-    : 'println' '(' expr ')'
+    : 'print' '(' (exprparams)? ')'
+    ;
+
+exprparams
+    : expr ',' exprparams       # exprWithParams
+    | expr                      # exprWithParam
     ;
 
 whilestmt
@@ -97,7 +104,15 @@ forstmt
     ;
 
 forrange
-    : beginsWith=INT '...' endsWith=INT
+    : beginsWith=expr '...' endsWith=expr
+    ;
+
+array
+    : VECTOR '<' vartype '>' ID array_def
+    ;
+
+array_def
+    : '=' (expr)*
     ;
 
 vartype
@@ -116,8 +131,8 @@ expr
     | left=expr op=('>='|'>') right=expr        # OpExpr
     | left=expr op=('<='|'<') right=expr        # OpExpr
     | left=expr op=('=='|'!=') right=expr       # OpExpr
-    | left=expr '&&' right=expr                 # OpExpr
-    | left=expr '||' right=expr                 # OpExpr
+    | left=expr op='&&' right=expr              # OpExpr
+    | left=expr op='||' right=expr              # OpExpr
     | '(' expr ')'                              # ParExpr
     | INT                                       # IntExpr
     | DOUBLE                                    # DoubleExpr

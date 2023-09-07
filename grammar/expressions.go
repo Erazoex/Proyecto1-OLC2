@@ -1,16 +1,31 @@
 package grammar
 
 import (
-	"fmt"
 	"proyecto2/parser"
 	"strconv"
 	"strings"
 )
 
+func (v *Visitor) VisitIdExpr(ctx *parser.IdExprContext) Value {
+	val, ok := v.environment.GetValue(ctx.ID().GetText())
+	if ok {
+		return val
+	}
+	// TODO: implementar error aqui
+	// no se encontro la variable
+	return Value{Type: ERROR}
+}
+
 func (v *Visitor) VisitNotExpr(ctx *parser.NotExprContext) Value {
 	right := v.Visit(ctx.GetRight())
 	if right.Type == BOOL {
-		return Value{value: !right.value.(bool)}
+		if right.value.(bool) {
+			right.value = false
+			return right
+		} else {
+			right.value = true
+			return right
+		}
 	}
 	// TODO: manejo de errores aqui
 	return Value{value: false}
@@ -70,22 +85,11 @@ func (v *Visitor) VisitStrExpr(ctx *parser.StrExprContext) Value {
 }
 
 func (v *Visitor) VisitCharExpr(ctx *parser.CharExprContext) Value {
-	value := strings.Trim(ctx.GetText(), "\"")[0]
+	value := strings.Trim(ctx.GetText(), "\"")
 	return Value{
 		value: value,
 		Type:  CHAR,
 	}
-}
-
-func (v *Visitor) VisitIdExpr(ctx *parser.IdExprContext) Value {
-	id := ctx.GetText()
-	value, ok := v.environment.tablaSimbolos[id]
-	if ok {
-		return value
-	} else {
-		fmt.Println("la variable no existe: " + id)
-	}
-	return Value{value: false}
 }
 
 func (v *Visitor) VisitBoolExpr(ctx *parser.BoolExprContext) Value {
@@ -93,5 +97,25 @@ func (v *Visitor) VisitBoolExpr(ctx *parser.BoolExprContext) Value {
 	return Value{
 		value: value,
 		Type:  BOOL,
+	}
+}
+
+func (v *Visitor) VisitExprWithParams(ctx *parser.ExprWithParamsContext) Value {
+	expr := v.Visit(ctx.Expr())
+	var newSlice []Value
+	newSlice = append(newSlice, expr)
+	exprSlice := v.Visit(ctx.Exprparams())
+	newSlice = append(newSlice, exprSlice.value.([]Value)...)
+	return Value{
+		value: newSlice,
+	}
+}
+
+func (v *Visitor) VisitExprWithParam(ctx *parser.ExprWithParamContext) Value {
+	expr := v.Visit(ctx.Expr())
+	return Value{
+		value: []Value{
+			expr,
+		},
 	}
 }

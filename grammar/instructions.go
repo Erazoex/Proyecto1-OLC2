@@ -3,7 +3,6 @@ package grammar
 import (
 	"fmt"
 	"proyecto2/parser"
-	"strconv"
 )
 
 func (v *Visitor) VisitStmt(ctx *parser.StmtContext) Value {
@@ -31,19 +30,15 @@ func (v *Visitor) VisitStmt(ctx *parser.StmtContext) Value {
 	if ctx.Whilestmt() != nil {
 		return v.Visit(ctx.Whilestmt())
 	}
+	if ctx.Forstmt() != nil {
+		return v.Visit(ctx.Forstmt())
+	}
 	return Value{value: true, Type: ACCEPTED}
 }
 
 // DECLARACION
 func (v *Visitor) VisitDeclstmtWithTypeAndExpr(ctx *parser.DeclstmtWithTypeAndExprContext) Value {
 	id := ctx.ID().GetText()
-	// comprobar que la variable no exista anteriormente
-	_, existe := v.environment.GetValue(id)
-	if existe {
-		fmt.Println("la variable ya existe", id)
-		// TODO: comprobar errores aqui
-		return Value{value: true, Type: ERROR}
-	}
 	value := v.Visit(ctx.Expr())
 	value.Id = id
 	// asignar si es constante o no
@@ -62,25 +57,20 @@ func (v *Visitor) VisitDeclstmtWithTypeAndExpr(ctx *parser.DeclstmtWithTypeAndEx
 		// TODO: comprobar errores aqui
 		return Value{value: true, Type: ERROR}
 	}
+	value.Type = v.Visit(ctx.Expr()).Type
 	// cambiando de manera nativa el valor de la asignacion de un int a un float
 	if value.Type == INT && tipo.Type == FLOAT {
 		value.value = float64(value.value.(int64))
 		value.Type = FLOAT
 	}
-	v.environment.tablaSimbolos[id] = value
+	v.environment.SaveValue(value)
 	return Value{value: nil, Type: ACCEPTED}
 }
 
 func (v *Visitor) VisitDeclstmtWithExpr(ctx *parser.DeclstmtWithExprContext) Value {
 	id := ctx.ID().GetText()
-	// comprobar que la variable no exista anteriormente
-	_, existe := v.environment.GetValue(id)
-	if existe {
-		fmt.Println("la variable ya existe", id)
-		// TODO: comprobar errores aqui
-		return Value{value: true, Type: ERROR}
-	}
 	value := v.Visit(ctx.Expr())
+	value.Type = v.Visit(ctx.Expr()).Type
 	value.Id = id
 	// asignar si es constante o no
 	constante := ctx.GetVtype().GetText()
@@ -92,7 +82,7 @@ func (v *Visitor) VisitDeclstmtWithExpr(ctx *parser.DeclstmtWithExprContext) Val
 	default:
 		value.Editable = true
 	}
-	v.environment.tablaSimbolos[id] = value
+	v.environment.SaveValue(value)
 	return Value{value: nil, Type: ACCEPTED}
 }
 
@@ -111,14 +101,9 @@ func (v *Visitor) VisitDeclstmtWithType(ctx *parser.DeclstmtWithTypeContext) Val
 	default:
 		value.Editable = true
 	}
-	// comprobar que la variable no exista anteriormente
-	_, existe := v.environment.GetValue(id)
-	if existe {
-		fmt.Println("la variable ya existe", id)
-		// TODO: comprobar errores aqui
-		return Value{value: true, Type: ERROR}
-	}
-	v.environment.tablaSimbolos[id] = value
+	value.value = nil
+	value.Type = NIL
+	v.environment.SaveValue(value)
 	return Value{value: nil, Type: ACCEPTED}
 }
 
@@ -272,14 +257,20 @@ func (v *Visitor) VisitSwitchstmt(ctx *parser.SwitchstmtContext) Value {
 
 // PRINTLN
 func (v *Visitor) VisitPrintlnstmt(ctx *parser.PrintlnstmtContext) Value {
-	fmt.Println(v.Visit(ctx.Expr()).value)
+	if ctx.Exprparams() != nil {
+		for _, item := range v.Visit(ctx.Exprparams()).value.([]Value) {
+			fmt.Print(item.value, " ")
+		}
+		fmt.Println()
+	} else {
+		fmt.Println()
+	}
 	return Value{value: true, Type: ACCEPTED}
 }
 
 // WHILE
 func (v *Visitor) VisitWhilestmt(ctx *parser.WhilestmtContext) Value {
-	newEnv := NewEnvironment(&v.environment)
-	v.environment = *newEnv
+	v.environment = NewEnvironment(v.environment)
 	for {
 		condition := v.Visit(ctx.Expr())
 		if condition.Type != BOOL {
@@ -292,6 +283,9 @@ func (v *Visitor) VisitWhilestmt(ctx *parser.WhilestmtContext) Value {
 			if transfer.Type == BREAK {
 				return Value{value: true, Type: ACCEPTED}
 			}
+			if transfer.Type == CONTINUE {
+				continue
+			}
 		} else {
 			break
 		}
@@ -299,12 +293,12 @@ func (v *Visitor) VisitWhilestmt(ctx *parser.WhilestmtContext) Value {
 	return Value{value: true, Type: ACCEPTED}
 }
 
+// TODO: fors no implementados
 // FOR
 func (v *Visitor) VisitForWithExpr(ctx *parser.ForWithExprContext) Value {
 	// TODO: realizar los cambios correspondientes aqui para que se puedan usar strings y
 	// vectores
-	newEnv := NewEnvironment(&v.environment)
-	v.environment = *newEnv
+	v.environment = NewEnvironment(v.environment)
 	for {
 		condition := v.Visit(ctx.Expr())
 		if condition.Type != BOOL {
@@ -325,32 +319,55 @@ func (v *Visitor) VisitForWithExpr(ctx *parser.ForWithExprContext) Value {
 }
 
 func (v *Visitor) VisitForWithRange(ctx *parser.ForWithRangeContext) Value {
-	newEnv := NewEnvironment(&v.environment)
-	v.environment = *newEnv
-	var forVariable Value
-	forVariable.Id = ctx.ID().GetText()
-	forVariable.value, _ = strconv.ParseInt(ctx.Forrange().GetBeginsWith().GetText(), 10, 64)
-	forVariable.Type = INT
-	v.environment.SaveValue(forVariable)
-	endValue, _ := strconv.ParseInt(ctx.Forrange().GetEndsWith().GetText(), 10, 64)
+	v.environment = NewEnvironment(v.environment)
+	id := ctx.ID().GetText()
+	empty := false
+	if id == "_" {
+		empty = true
+	}
+	left := v.Visit(ctx.Forrange().GetBeginsWith())
+	temp := Value{
+		value:    left.value,
+		Editable: true,
+		Id:       id,
+		Type:     left.Type,
+	}
+	if !empty {
+		v.environment.SaveValue(temp)
+	}
 	for {
-		variable, ok := v.environment.GetValue(ctx.GetText())
-		if !ok {
+		temp, _ = v.environment.GetValue(temp.Id)
+		right := v.Visit(ctx.Forrange().GetEndsWith())
+		if left.Type != INT || right.Type != INT {
 			// TODO: implementar error aqui
-			// no se pudo obtener la variable
-			return Value{value: true}
+			// el rango no contiene expresiones de tipo INT
+			return Value{Type: ERROR}
 		}
-		if variable.value.(int64) <= endValue {
-			transfer := v.Visit(ctx.Block())
-			if transfer.Type == BREAK {
-				break
-			}
-			if transfer.Type == CONTINUE {
-				continue
-			}
+		if left.value.(int64) > right.value.(int64) {
+			// TODO: implementar error aqui
+			// la expresion en la izquierda no puede ser mayor a la expresion en la derecha
+			return Value{Type: ERROR}
+		}
+		var transfer Value
+		if temp.value.(int64) <= right.value.(int64) {
+			transfer = v.Visit(ctx.Block())
 		} else {
-			return Value{value: true, Type: ACCEPTED}
+			break
+		}
+		if transfer.Type == CONTINUE {
+			continue
+		}
+		if transfer.Type == BREAK {
+			break
+		}
+		if transfer.Type == RETURN {
+			return transfer
+		}
+		temp.value = temp.value.(int64) + 1
+		if !empty {
+			v.environment.UpdateValue(temp)
 		}
 	}
-	return Value{value: true, Type: ACCEPTED}
+
+	return Value{Type: ACCEPTED}
 }

@@ -37,6 +37,10 @@ func (v *Visitor) Visit(tree antlr.ParseTree) Value {
 		return v.VisitParExpr(val)
 	case *parser.OpExprContext:
 		return v.VisitOpExpr(val)
+	case *parser.ExprWithParamContext:
+		return v.VisitExprWithParam(val)
+	case *parser.ExprWithParamsContext:
+		return v.VisitExprWithParams(val)
 	case *parser.PrimitiveTypeContext:
 		return v.VisitPrimitiveType(val)
 	case *parser.DeclstmtWithTypeAndExprContext:
@@ -61,6 +65,8 @@ func (v *Visitor) Visit(tree antlr.ParseTree) Value {
 		return v.VisitSwitchstmt(val)
 	case *parser.PrintlnstmtContext:
 		return v.VisitPrintlnstmt(val)
+	case *parser.ForWithRangeContext:
+		return v.VisitForWithRange(val)
 	}
 	return Value{value: "la funcion todavia no se ha implementado"}
 }
@@ -71,25 +77,8 @@ func (v *Visitor) VisitInit(ctx *parser.InitContext) Value {
 
 func Execute() {
 	input := `
-	let opcion = 15
-	if opcion + 2< (3*5)+1 {
-		println("entra en la condicion verdadera")
-	} else if opcion + 1 == 16 {
-		println("entra en la segunda condicion")
-	} else {
-		println("ultima condicion")
-	}
-
-	let numero = 2
-	switch numero {
-	case 1:
-		println("UNO")
-	case 2:
-		println("DOS")
-	case 3:
-		println("TRES")
-	default:
-		println("NINGUNO")
+	for item in 0...10+2 {
+		print(item)
 	}
 	`
 	inputStream := antlr.NewInputStream(input)
@@ -99,7 +88,7 @@ func Execute() {
 	p.BuildParseTrees = true
 	tree := p.Init()
 	eval := Visitor{
-		environment: *NewEnvironment(nil),
+		environment: NewEnvironment(nil),
 	}
 	eval.Visit(tree)
 }

@@ -68,6 +68,14 @@ func (v *BaseGrammarVisitor) VisitPrintlnstmt(ctx *PrintlnstmtContext) interface
 	return v.VisitChildren(ctx)
 }
 
+func (v *BaseGrammarVisitor) VisitExprWithParams(ctx *ExprWithParamsContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGrammarVisitor) VisitExprWithParam(ctx *ExprWithParamContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
 func (v *BaseGrammarVisitor) VisitWhilestmt(ctx *WhilestmtContext) interface{} {
 	return v.VisitChildren(ctx)
 }
@@ -81,6 +89,14 @@ func (v *BaseGrammarVisitor) VisitForWithRange(ctx *ForWithRangeContext) interfa
 }
 
 func (v *BaseGrammarVisitor) VisitForrange(ctx *ForrangeContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGrammarVisitor) VisitArray(ctx *ArrayContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGrammarVisitor) VisitArray_def(ctx *Array_defContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 

@@ -4,6 +4,7 @@ type DataType int
 
 const (
 	ERROR DataType = iota
+	ACCEPTED
 	INT
 	FLOAT
 	STRING
@@ -12,5 +13,6 @@ const (
 	NIL
 	BREAK
 	CONTINUE
-	ACCEPTED
+	RETURN
+	TUPLE
 )

@@ -279,10 +279,14 @@ func And(leftValue, rightValue Value) Value {
 		case bool:
 			return Value{value: leftValue.value.(bool) && rightValue.value.(bool), Type: BOOL}
 		default:
-			return Value{value: false}
+			// TODO: implementar error
+			// la expresion no es de tipo bool
+			return Value{Type: ERROR}
 		}
 	default:
-		return Value{value: false}
+		// TODO: implementar error
+		// la expresion no es de tipo bool
+		return Value{Type: ERROR}
 	}
 }
 
@@ -293,9 +297,13 @@ func Or(leftValue, rightValue Value) Value {
 		case bool:
 			return Value{value: leftValue.value.(bool) || rightValue.value.(bool), Type: BOOL}
 		default:
-			return Value{value: false}
+			// TODO: implementar error
+			// la expresion no es de tipo bool
+			return Value{Type: ERROR}
 		}
 	default:
-		return Value{value: false}
+		// TODO: implementar error
+		// la expresion no es de tipo bool
+		return Value{Type: ERROR}
 	}
 }

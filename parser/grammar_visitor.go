@@ -53,6 +53,12 @@ type GrammarVisitor interface {
 	// Visit a parse tree produced by GrammarParser#printlnstmt.
 	VisitPrintlnstmt(ctx *PrintlnstmtContext) interface{}
 
+	// Visit a parse tree produced by GrammarParser#exprWithParams.
+	VisitExprWithParams(ctx *ExprWithParamsContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#exprWithParam.
+	VisitExprWithParam(ctx *ExprWithParamContext) interface{}
+
 	// Visit a parse tree produced by GrammarParser#whilestmt.
 	VisitWhilestmt(ctx *WhilestmtContext) interface{}
 
@@ -64,6 +70,12 @@ type GrammarVisitor interface {
 
 	// Visit a parse tree produced by GrammarParser#forrange.
 	VisitForrange(ctx *ForrangeContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#array.
+	VisitArray(ctx *ArrayContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#array_def.
+	VisitArray_def(ctx *Array_defContext) interface{}
 
 	// Visit a parse tree produced by GrammarParser#primitiveType.
 	VisitPrimitiveType(ctx *PrimitiveTypeContext) interface{}

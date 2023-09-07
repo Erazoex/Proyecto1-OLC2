@@ -7,7 +7,11 @@ type Value struct {
 	Type     DataType
 }
 
-type Function func(...interface{}) interface{}
+type Function struct {
+	Type       DataType
+	Id         string
+	parametros []any
+}
 
 type error struct {
 	descripcion string

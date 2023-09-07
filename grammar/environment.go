@@ -7,7 +7,7 @@ import (
 
 type Visitor struct {
 	parser.BaseGrammarVisitor
-	environment Environment
+	environment *Environment
 	errores     []error
 }
 
@@ -108,5 +108,10 @@ func (e *Environment) GetValue(id string) (Value, bool) {
 		}
 		temp = temp.padre
 	}
+	return val, ok
+}
+
+func (e *Environment) GetValueInCurrentEnvironment(id string) (Value, bool) {
+	val, ok := e.tablaSimbolos[id]
 	return val, ok
 }

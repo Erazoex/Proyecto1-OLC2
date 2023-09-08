@@ -3,18 +3,34 @@ package grammar
 import (
 	"fmt"
 	"proyecto2/parser"
+	"strconv"
+	"strings"
 )
 
 type Visitor struct {
 	parser.BaseGrammarVisitor
-	environment *Environment
-	errores     []error
+	Environment *Environment
+	Errores     []error
+	Consola     string
+}
+
+func (v *Visitor) push(newError error) {
+	v.Errores = append(v.Errores, newError)
+}
+
+func (v *Visitor) Print(str string) {
+	v.Consola += str
+}
+
+func (v *Visitor) GetConsole() string {
+	return v.Consola
 }
 
 type Environment struct {
 	tablaSimbolos         map[string]Value
 	tablaSimbolos_metodos map[string]Function
 	padre                 *Environment
+	hijos                 []*Environment
 }
 
 func NewEnvironment(padre *Environment) *Environment {
@@ -27,6 +43,10 @@ func NewEnvironment(padre *Environment) *Environment {
 
 func (e *Environment) GetEnvironment() map[string]Value {
 	return e.tablaSimbolos
+}
+
+func (e *Environment) push(nuevoHijo *Environment) {
+	e.hijos = append(e.hijos, nuevoHijo)
 }
 
 func (e *Environment) SaveValue(val Value) bool {
@@ -63,27 +83,7 @@ func (e *Environment) UpdateValue(newValue Value) bool {
 		}
 		if ok && !(val.Type == newValue.Type) && val.Type != NIL {
 			// TODO: implememntar error aqui
-			fmt.Println("la variable", newValue.Id, "no es del mismo tipo", newValue.Type)
-			return false
-		}
-		if ok {
-			val.value = newValue.value
-			temp.tablaSimbolos[newValue.Id] = val
-			return true
-		}
-		temp = temp.padre
-	}
-	// TODO: implementar error aqui
-	return false
-}
-
-func (e *Environment) UpdateForValue(newValue Value) bool {
-	temp := e
-	for temp != nil {
-		val, ok := temp.tablaSimbolos[newValue.Id]
-		if ok && !(val.Type == newValue.Type) && val.Type != NIL {
-			// TODO: implememntar error aqui
-			fmt.Println("la variable", newValue.Id, "no es del mismo tipo", newValue.Type)
+			fmt.Println("la variable", newValue.Id, "no es del mismo tipo", val.Type, newValue.Type)
 			return false
 		}
 		if ok {
@@ -114,4 +114,32 @@ func (e *Environment) GetValue(id string) (Value, bool) {
 func (e *Environment) GetValueInCurrentEnvironment(id string) (Value, bool) {
 	val, ok := e.tablaSimbolos[id]
 	return val, ok
+}
+
+func (e *Environment) generateSymbolTable() string {
+	var graph strings.Builder
+	if e == nil {
+		return ""
+	}
+	for key, value := range e.GetEnvironment() {
+		graph.WriteString("<tr>\n")
+		graph.WriteString("<th>")
+		graph.WriteString(key)
+		graph.WriteString("</th>\n")
+		graph.WriteString("<th>")
+		graph.WriteString(fmt.Sprintf("%v", value.Type))
+		graph.WriteString("</th>\n")
+		graph.WriteString("<th>")
+		graph.WriteString(strconv.FormatBool(value.Editable))
+		graph.WriteString("</th>\n")
+		graph.WriteString("<th>")
+		graph.WriteString(fmt.Sprintf("%v", value.value))
+		graph.WriteString("</th>\n")
+		graph.WriteString("</tr>\n")
+	}
+	for _, newEnv := range e.hijos {
+		graph.WriteString("<tr><th colspan=\"4\">Nuevo ambiente generado</th></tr>\n")
+		graph.WriteString(newEnv.generateSymbolTable())
+	}
+	return graph.String()
 }

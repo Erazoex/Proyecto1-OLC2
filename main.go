@@ -1,9 +1,12 @@
 package main
 
-import "proyecto2/grammar"
+import (
+	"proyecto2/api"
+)
 
 func main() {
-	grammar.Execute()
+	server := api.NewAPIServer(":4200")
+	server.Run()
 }
 
 // antlr -Dlanguage=Go -o parser -visitor -no-listener Grammar.g4

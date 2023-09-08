@@ -17,6 +17,15 @@ type GrammarVisitor interface {
 	// Visit a parse tree produced by GrammarParser#stmt.
 	VisitStmt(ctx *StmtContext) interface{}
 
+	// Visit a parse tree produced by GrammarParser#breakstmt.
+	VisitBreakstmt(ctx *BreakstmtContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#continuestmt.
+	VisitContinuestmt(ctx *ContinuestmtContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#returnstmt.
+	VisitReturnstmt(ctx *ReturnstmtContext) interface{}
+
 	// Visit a parse tree produced by GrammarParser#declstmtWithTypeAndExpr.
 	VisitDeclstmtWithTypeAndExpr(ctx *DeclstmtWithTypeAndExprContext) interface{}
 
@@ -70,6 +79,9 @@ type GrammarVisitor interface {
 
 	// Visit a parse tree produced by GrammarParser#forrange.
 	VisitForrange(ctx *ForrangeContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#guardstmt.
+	VisitGuardstmt(ctx *GuardstmtContext) interface{}
 
 	// Visit a parse tree produced by GrammarParser#array.
 	VisitArray(ctx *ArrayContext) interface{}

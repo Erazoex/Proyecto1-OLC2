@@ -19,6 +19,10 @@ WHILE       :   'while';
 FOR         :   'for';
 VECTOR      :   'vector';
 FUNC        :   'func';
+GUARD       :   'guard';
+BREAK       :   'break';
+RETURN      :   'return';
+CONTINUE    :   'continue';
 
 // regular expressions
 DOUBLE      :   [0-9]+('.'[0-9]+);
@@ -49,6 +53,22 @@ stmt
     | printlnstmt
     | whilestmt
     | forstmt
+    | guardstmt
+    | breakstmt
+    | continuestmt
+    | returnstmt
+    ;
+
+breakstmt
+    : BREAK
+    ;
+
+continuestmt
+    : CONTINUE
+    ;
+
+returnstmt
+    : RETURN (expr)?
     ;
 
 declstmt
@@ -105,6 +125,10 @@ forstmt
 
 forrange
     : beginsWith=expr '...' endsWith=expr
+    ;
+
+guardstmt
+    : GUARD expr ELSE '{' block '}' 
     ;
 
 array

@@ -20,6 +20,18 @@ func (v *BaseGrammarVisitor) VisitStmt(ctx *StmtContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 
+func (v *BaseGrammarVisitor) VisitBreakstmt(ctx *BreakstmtContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGrammarVisitor) VisitContinuestmt(ctx *ContinuestmtContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGrammarVisitor) VisitReturnstmt(ctx *ReturnstmtContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
 func (v *BaseGrammarVisitor) VisitDeclstmtWithTypeAndExpr(ctx *DeclstmtWithTypeAndExprContext) interface{} {
 	return v.VisitChildren(ctx)
 }
@@ -89,6 +101,10 @@ func (v *BaseGrammarVisitor) VisitForWithRange(ctx *ForWithRangeContext) interfa
 }
 
 func (v *BaseGrammarVisitor) VisitForrange(ctx *ForrangeContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGrammarVisitor) VisitGuardstmt(ctx *GuardstmtContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 

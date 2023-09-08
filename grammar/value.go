@@ -14,5 +14,7 @@ type Function struct {
 }
 
 type error struct {
-	descripcion string
+	desc   string
+	line   int
+	column int
 }

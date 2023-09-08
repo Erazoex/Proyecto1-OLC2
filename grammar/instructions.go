@@ -33,7 +33,37 @@ func (v *Visitor) VisitStmt(ctx *parser.StmtContext) Value {
 	if ctx.Forstmt() != nil {
 		return v.Visit(ctx.Forstmt())
 	}
+	if ctx.Guardstmt() != nil {
+		return v.Visit(ctx.Guardstmt())
+	}
+	if ctx.Breakstmt() != nil {
+		return v.Visit(ctx.Breakstmt())
+	}
+	if ctx.Continuestmt() != nil {
+		return v.Visit(ctx.Continuestmt())
+	}
+	if ctx.Returnstmt() != nil {
+		return v.Visit(ctx.Returnstmt())
+	}
 	return Value{value: true, Type: ACCEPTED}
+}
+
+func (v *Visitor) VisitBreakstmt(ctx *parser.BreakstmtContext) Value {
+	return Value{
+		Type: BREAK,
+	}
+}
+
+func (v *Visitor) VisitContinuestmt(ctx *parser.ContinuestmtContext) Value {
+	return Value{
+		Type: CONTINUE,
+	}
+}
+
+func (v *Visitor) VisitReturnstmt(ctx *parser.ReturnstmtContext) Value {
+	return Value{
+		Type: RETURN,
+	}
 }
 
 // DECLARACION
@@ -52,25 +82,29 @@ func (v *Visitor) VisitDeclstmtWithTypeAndExpr(ctx *parser.DeclstmtWithTypeAndEx
 		value.Editable = true
 	}
 	tipo := v.Visit(ctx.Vartype())
-	if value.Type != tipo.Type && !(value.Type == INT && tipo.Type == FLOAT) {
-		fmt.Println("la variable no es del mismo tipo que la expresion", id, "tipo:", tipo.Type)
+	if value.Type != tipo.Type && !(value.Type == INT && tipo.Type == FLOAT) && !(tipo.Type == STRING && value.Type == CHAR) {
+		fmt.Println("la variable no es del mismo tipo que la expresion", id, value.Type, "tipo:", tipo.Type)
 		// TODO: comprobar errores aqui
+		v.push(error{
+			desc:   "la variable no es del mismo tipo que la expresion",
+			line:   ctx.GetStart().GetLine(),
+			column: ctx.GetStart().GetColumn(),
+		})
 		return Value{value: true, Type: ERROR}
 	}
-	value.Type = v.Visit(ctx.Expr()).Type
+	value.Type = tipo.Type
 	// cambiando de manera nativa el valor de la asignacion de un int a un float
 	if value.Type == INT && tipo.Type == FLOAT {
 		value.value = float64(value.value.(int64))
 		value.Type = FLOAT
 	}
-	v.environment.SaveValue(value)
+	v.Environment.SaveValue(value)
 	return Value{value: nil, Type: ACCEPTED}
 }
 
 func (v *Visitor) VisitDeclstmtWithExpr(ctx *parser.DeclstmtWithExprContext) Value {
 	id := ctx.ID().GetText()
 	value := v.Visit(ctx.Expr())
-	value.Type = v.Visit(ctx.Expr()).Type
 	value.Id = id
 	// asignar si es constante o no
 	constante := ctx.GetVtype().GetText()
@@ -82,7 +116,7 @@ func (v *Visitor) VisitDeclstmtWithExpr(ctx *parser.DeclstmtWithExprContext) Val
 	default:
 		value.Editable = true
 	}
-	v.environment.SaveValue(value)
+	v.Environment.SaveValue(value)
 	return Value{value: nil, Type: ACCEPTED}
 }
 
@@ -94,7 +128,14 @@ func (v *Visitor) VisitDeclstmtWithType(ctx *parser.DeclstmtWithTypeContext) Val
 	constante := ctx.GetVtype().GetText()
 	switch constante {
 	case "let":
+		// TODO: implementar error aqui
+		// la constante debe tener un valor asignado
 		fmt.Println("La constante debe tener un valor asignado", value.Id)
+		v.push(error{
+			desc:   "La constante debe tener un valor asignado",
+			line:   ctx.GetStart().GetLine(),
+			column: ctx.GetStart().GetColumn(),
+		})
 		return Value{value: true, Type: ERROR}
 	case "var":
 		value.Editable = true
@@ -103,7 +144,7 @@ func (v *Visitor) VisitDeclstmtWithType(ctx *parser.DeclstmtWithTypeContext) Val
 	}
 	value.value = nil
 	value.Type = NIL
-	v.environment.SaveValue(value)
+	v.Environment.SaveValue(value)
 	return Value{value: nil, Type: ACCEPTED}
 }
 
@@ -112,10 +153,15 @@ func (v *Visitor) VisitAsignstmt(ctx *parser.AsignstmtContext) Value {
 	id := ctx.ID().GetText()
 	value := v.Visit(ctx.Expr())
 	value.Id = id
-	updated := v.environment.UpdateValue(value)
+	updated := v.Environment.UpdateValue(value)
 	if !updated {
 		// TODO: errores mas adelante
 		// fmt.Println("la variable no se pudo actualizar", value.Id)
+		v.push(error{
+			desc:   "La variable no se pudo actualizar",
+			line:   ctx.GetStart().GetLine(),
+			column: ctx.GetStart().GetColumn(),
+		})
 		return Value{value: false}
 	}
 	return Value{value: nil, Type: ACCEPTED}
@@ -125,20 +171,40 @@ func (v *Visitor) VisitAsignstmt(ctx *parser.AsignstmtContext) Value {
 func (v *Visitor) VisitIncstmt(ctx *parser.IncstmtContext) Value {
 	id := ctx.ID().GetText()
 	ExprValue := v.Visit(ctx.Expr())
-	value, ok := v.environment.GetValue(id)
+	value, ok := v.Environment.GetValue(id)
 	if !ok {
 		// TODO: implementar error mas adelante
+		v.push(error{
+			desc:   "la variable a incrementar el valor no existe",
+			line:   ctx.GetStart().GetLine(),
+			column: ctx.GetStart().GetColumn(),
+		})
 		return Value{value: false}
 	}
 	if value.Type != INT && value.Type != FLOAT && value.Type != STRING {
 		// TODO: implementar error mas adelante
+		v.push(error{
+			desc:   "La variable a incrementar no es de un tipo permitido",
+			line:   ctx.GetStart().GetLine(),
+			column: ctx.GetStart().GetColumn(),
+		})
 		return Value{value: false}
 	}
 	if value.Type != ExprValue.Type {
 		// TODO: implementar error mas adelante
+		v.push(error{
+			desc:   "La expresion no es del mismo tipo que la variable",
+			line:   ctx.GetStart().GetLine(),
+			column: ctx.GetStart().GetColumn(),
+		})
 		return Value{value: false}
 	}
 	if !value.Editable {
+		v.push(error{
+			desc:   "No se puede incrementar una constante",
+			line:   ctx.GetStart().GetLine(),
+			column: ctx.GetStart().GetColumn(),
+		})
 		// TODO: implementar error mas adelante
 		return Value{value: false}
 	}
@@ -150,28 +216,48 @@ func (v *Visitor) VisitIncstmt(ctx *parser.IncstmtContext) Value {
 	case STRING:
 		value.value = value.value.(string) + ExprValue.value.(string)
 	}
-	v.environment.UpdateValue(value)
+	v.Environment.UpdateValue(value)
 	return Value{value: true, Type: ACCEPTED}
 }
 
 func (v *Visitor) VisitDecstmt(ctx *parser.DecstmtContext) Value {
 	id := ctx.ID().GetText()
 	ExprValue := v.Visit(ctx.Expr())
-	value, ok := v.environment.GetValue(id)
+	value, ok := v.Environment.GetValue(id)
 	if !ok {
 		// TODO: implementar error mas adelante
+		v.push(error{
+			desc:   "La variable a decrementar no existe",
+			line:   ctx.GetStart().GetLine(),
+			column: ctx.GetStart().GetColumn(),
+		})
 		return Value{value: false}
 	}
 	if value.Type != INT && value.Type != FLOAT {
 		// TODO: implementar error mas adelante
+		v.push(error{
+			desc:   "El tipo de la variable no es de un tipo permitido a decrementar",
+			line:   ctx.GetStart().GetLine(),
+			column: ctx.GetStart().GetColumn(),
+		})
 		return Value{value: false}
 	}
 	if value.Type != ExprValue.Type {
 		// TODO: implementar error mas adelante
+		v.push(error{
+			desc:   "La expresion no es del mismo tipo que la variable",
+			line:   ctx.GetStart().GetLine(),
+			column: ctx.GetStart().GetColumn(),
+		})
 		return Value{value: false}
 	}
 	if !value.Editable {
 		// TODO: implementar error mas adelante
+		v.push(error{
+			desc:   "No se puede decrementar una constante",
+			line:   ctx.GetStart().GetLine(),
+			column: ctx.GetStart().GetColumn(),
+		})
 		return Value{value: false}
 	}
 	switch value.Type {
@@ -180,7 +266,7 @@ func (v *Visitor) VisitDecstmt(ctx *parser.DecstmtContext) Value {
 	case FLOAT:
 		value.value = value.value.(float64) - ExprValue.value.(float64)
 	}
-	v.environment.UpdateValue(value)
+	v.Environment.UpdateValue(value)
 	return Value{value: true, Type: ACCEPTED}
 }
 
@@ -189,10 +275,15 @@ func (v *Visitor) VisitIfSimple(ctx *parser.IfSimpleContext) Value {
 	condition := v.Visit(ctx.Expr())
 	if condition.Type != BOOL {
 		// TODO: implementar error aqui
+		v.push(error{
+			desc:   "La condicion no es de tipo Boolean",
+			line:   ctx.GetStart().GetLine(),
+			column: ctx.GetStart().GetColumn(),
+		})
 		return Value{value: false}
 	}
 	if condition.value == true {
-		v.Visit(ctx.Block())
+		return v.Visit(ctx.Block())
 	}
 	return Value{value: true, Type: ACCEPTED}
 }
@@ -201,28 +292,36 @@ func (v *Visitor) VisitIfWithElse(ctx *parser.IfWithElseContext) Value {
 	condition := v.Visit(ctx.Expr())
 	if condition.Type != BOOL {
 		// TODO: implementar error aqui
+		v.push(error{
+			desc:   "La condicion no es de tipo Boolean",
+			line:   ctx.GetStart().GetLine(),
+			column: ctx.GetStart().GetColumn(),
+		})
 		return Value{value: false}
 	}
 	if condition.value == true {
-		v.Visit(ctx.GetTrueCondition())
+		return v.Visit(ctx.GetTrueCondition())
 	} else {
-		v.Visit(ctx.GetFalseCondition())
+		return v.Visit(ctx.GetFalseCondition())
 	}
-	return Value{value: true, Type: ACCEPTED}
 }
 
 func (v *Visitor) VisitIfWithElseIf(ctx *parser.IfWithElseIfContext) Value {
 	condition := v.Visit(ctx.Expr())
 	if condition.Type != BOOL {
 		// TODO: implementar error aqui
+		v.push(error{
+			desc:   "La condicion no es de tipo Boolean",
+			line:   ctx.GetStart().GetLine(),
+			column: ctx.GetStart().GetColumn(),
+		})
 		return Value{value: false}
 	}
 	if condition.value == true {
-		v.Visit(ctx.Block())
+		return v.Visit(ctx.Block())
 	} else {
-		v.Visit(ctx.Ifstmt())
+		return v.Visit(ctx.Ifstmt())
 	}
-	return Value{value: true, Type: ACCEPTED}
 }
 
 // SWITCH
@@ -237,6 +336,11 @@ func (v *Visitor) VisitSwitchstmt(ctx *parser.SwitchstmtContext) Value {
 		if isThereAnyDefault && ctx.Switchcase(i) != nil {
 			// TODO: implementar error aqui
 			// Error: no se puede declarar un case o otro default despues de un default
+			v.push(error{
+				desc:   "No se puede declarar un case u otro default despues de un default",
+				line:   ctx.GetStart().GetLine(),
+				column: ctx.GetStart().GetColumn(),
+			})
 			return Value{value: false}
 		}
 		option := ctx.Switchcase(i).GetCasetype().GetText()
@@ -259,10 +363,13 @@ func (v *Visitor) VisitSwitchstmt(ctx *parser.SwitchstmtContext) Value {
 func (v *Visitor) VisitPrintlnstmt(ctx *parser.PrintlnstmtContext) Value {
 	if ctx.Exprparams() != nil {
 		for _, item := range v.Visit(ctx.Exprparams()).value.([]Value) {
+			v.Print(fmt.Sprintf("%v", item.value))
 			fmt.Print(item.value, " ")
 		}
+		v.Print("\n")
 		fmt.Println()
 	} else {
+		v.Print("\n")
 		fmt.Println()
 	}
 	return Value{value: true, Type: ACCEPTED}
@@ -270,21 +377,31 @@ func (v *Visitor) VisitPrintlnstmt(ctx *parser.PrintlnstmtContext) Value {
 
 // WHILE
 func (v *Visitor) VisitWhilestmt(ctx *parser.WhilestmtContext) Value {
-	v.environment = NewEnvironment(v.environment)
+	newEnv := NewEnvironment(v.Environment)
+	v.Environment.push(newEnv)
+	v.Environment = newEnv
 	for {
 		condition := v.Visit(ctx.Expr())
 		if condition.Type != BOOL {
 			// TODO: implementar error aqui
 			// la condicion no es de tipo boolean
-			return Value{value: true}
+			v.push(error{
+				desc:   "La condicion no es de tipo boolean",
+				line:   ctx.GetStart().GetLine(),
+				column: ctx.GetStart().GetColumn(),
+			})
+			return Value{Type: ERROR}
 		}
-		if condition.value == true {
+		if condition.value.(bool) {
 			transfer := v.Visit(ctx.Block())
 			if transfer.Type == BREAK {
-				return Value{value: true, Type: ACCEPTED}
+				break
 			}
 			if transfer.Type == CONTINUE {
 				continue
+			}
+			if transfer.Type == RETURN {
+				return transfer
 			}
 		} else {
 			break
@@ -293,12 +410,14 @@ func (v *Visitor) VisitWhilestmt(ctx *parser.WhilestmtContext) Value {
 	return Value{value: true, Type: ACCEPTED}
 }
 
-// TODO: fors no implementados
+// TODO: for con expresion no implementado
 // FOR
 func (v *Visitor) VisitForWithExpr(ctx *parser.ForWithExprContext) Value {
 	// TODO: realizar los cambios correspondientes aqui para que se puedan usar strings y
 	// vectores
-	v.environment = NewEnvironment(v.environment)
+	newEnv := NewEnvironment(v.Environment)
+	v.Environment.push(newEnv)
+	v.Environment = newEnv
 	for {
 		condition := v.Visit(ctx.Expr())
 		if condition.Type != BOOL {
@@ -319,7 +438,9 @@ func (v *Visitor) VisitForWithExpr(ctx *parser.ForWithExprContext) Value {
 }
 
 func (v *Visitor) VisitForWithRange(ctx *parser.ForWithRangeContext) Value {
-	v.environment = NewEnvironment(v.environment)
+	newEnv := NewEnvironment(v.Environment)
+	v.Environment.push(newEnv)
+	v.Environment = newEnv
 	id := ctx.ID().GetText()
 	empty := false
 	if id == "_" {
@@ -330,44 +451,91 @@ func (v *Visitor) VisitForWithRange(ctx *parser.ForWithRangeContext) Value {
 		value:    left.value,
 		Editable: true,
 		Id:       id,
-		Type:     left.Type,
+		Type:     INT,
 	}
 	if !empty {
-		v.environment.SaveValue(temp)
+		v.Environment.SaveValue(temp)
 	}
 	for {
-		temp, _ = v.environment.GetValue(temp.Id)
+		if !empty {
+			temp, _ = v.Environment.GetValue(temp.Id)
+		}
 		right := v.Visit(ctx.Forrange().GetEndsWith())
 		if left.Type != INT || right.Type != INT {
 			// TODO: implementar error aqui
 			// el rango no contiene expresiones de tipo INT
+			v.push(error{
+				desc:   "El rango no contiene expresiones de tipo INT",
+				line:   ctx.GetStart().GetLine(),
+				column: ctx.GetStart().GetColumn(),
+			})
 			return Value{Type: ERROR}
 		}
-		if left.value.(int64) > right.value.(int64) {
+		if temp.value.(int64) > right.value.(int64) {
 			// TODO: implementar error aqui
 			// la expresion en la izquierda no puede ser mayor a la expresion en la derecha
+			v.push(error{
+				desc:   "La expresion en la izquierda no puede ser mayor a la expresion en la derecha",
+				line:   ctx.GetStart().GetLine(),
+				column: ctx.GetStart().GetColumn(),
+			})
 			return Value{Type: ERROR}
 		}
-		var transfer Value
-		if temp.value.(int64) <= right.value.(int64) {
-			transfer = v.Visit(ctx.Block())
+		if temp.value.(int64) < right.value.(int64) {
+			transfer := v.Visit(ctx.Block())
+			if transfer.Type == CONTINUE {
+				continue
+			}
+			if transfer.Type == BREAK {
+				break
+			}
+			if transfer.Type == RETURN {
+				return transfer
+			}
 		} else {
 			break
 		}
-		if transfer.Type == CONTINUE {
-			continue
+		temp.value = temp.value.(int64) + 1
+		if !empty {
+			v.Environment.UpdateValue(temp)
 		}
+	}
+
+	return Value{Type: ACCEPTED}
+}
+
+// GUARD
+func (v *Visitor) VisitGuardstmt(ctx *parser.GuardstmtContext) Value {
+	condition := v.Visit(ctx.Expr())
+	if condition.Type != BOOL {
+		// TODO: implementar error aqui
+		// la condicion no es de tipo Boolean
+		v.push(error{
+			desc:   "La condicion no es de tipo Boolean",
+			line:   ctx.GetStart().GetLine(),
+			column: ctx.GetStart().GetColumn(),
+		})
+		return Value{Type: ERROR}
+	}
+	if !condition.value.(bool) {
+		transfer := v.Visit(ctx.Block())
 		if transfer.Type == BREAK {
-			break
+			return transfer
+		}
+		if transfer.Type == CONTINUE {
+			return transfer
 		}
 		if transfer.Type == RETURN {
 			return transfer
 		}
-		temp.value = temp.value.(int64) + 1
-		if !empty {
-			v.environment.UpdateValue(temp)
-		}
+		// TODO: implementar error aqui
+		// la instruccion guard no contiene una sentencia de transferencia
+		v.push(error{
+			desc:   "La instruccion guard no contiene una sentencia de transferencia",
+			line:   ctx.GetStart().GetLine(),
+			column: ctx.GetStart().GetColumn(),
+		})
+		return Value{Type: ERROR}
 	}
-
 	return Value{Type: ACCEPTED}
 }

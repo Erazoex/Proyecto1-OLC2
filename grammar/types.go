@@ -15,6 +15,8 @@ func (v *Visitor) VisitPrimitiveType(ctx *parser.PrimitiveTypeContext) Value {
 		return Value{Type: CHAR}
 	case "Bool":
 		return Value{Type: BOOL}
+	case "nil":
+		return Value{Type: NIL}
 	}
 	return Value{Type: ERROR}
 }

@@ -7,12 +7,17 @@ import (
 )
 
 func (v *Visitor) VisitIdExpr(ctx *parser.IdExprContext) Value {
-	val, ok := v.environment.GetValue(ctx.ID().GetText())
+	val, ok := v.Environment.GetValue(ctx.ID().GetText())
 	if ok {
 		return val
 	}
 	// TODO: implementar error aqui
 	// no se encontro la variable
+	v.push(error{
+		desc:   "No se encontro la variable",
+		line:   ctx.GetStart().GetLine(),
+		column: ctx.GetStart().GetColumn(),
+	})
 	return Value{Type: ERROR}
 }
 
@@ -28,18 +33,28 @@ func (v *Visitor) VisitNotExpr(ctx *parser.NotExprContext) Value {
 		}
 	}
 	// TODO: manejo de errores aqui
+	v.push(error{
+		desc:   "No se puede negar la expresion",
+		line:   ctx.GetStart().GetLine(),
+		column: ctx.GetStart().GetColumn(),
+	})
 	return Value{value: false}
 }
 
 func (v *Visitor) VisitUnaryExpr(ctx *parser.UnaryExprContext) Value {
 	right := v.Visit(ctx.GetRight())
 	if right.Type == INT {
-		return Value{value: -right.value.(int)}
+		return Value{value: right.value.(int64) * -1, Type: INT}
 	}
 	if right.Type == FLOAT {
-		return Value{value: -right.value.(float64)}
+		return Value{value: right.value.(float64) * -1, Type: FLOAT}
 	}
 	// TODO: manejo de errores aqui
+	v.push(error{
+		desc:   "Tipo de expresion no valido para expresion unaria",
+		line:   ctx.GetStart().GetLine(),
+		column: ctx.GetStart().GetColumn(),
+	})
 	return Value{value: false}
 }
 
@@ -108,6 +123,7 @@ func (v *Visitor) VisitExprWithParams(ctx *parser.ExprWithParamsContext) Value {
 	newSlice = append(newSlice, exprSlice.value.([]Value)...)
 	return Value{
 		value: newSlice,
+		Type:  expr.Type,
 	}
 }
 
@@ -117,5 +133,6 @@ func (v *Visitor) VisitExprWithParam(ctx *parser.ExprWithParamContext) Value {
 		value: []Value{
 			expr,
 		},
+		Type: expr.Type,
 	}
 }

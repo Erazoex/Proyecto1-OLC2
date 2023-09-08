@@ -1,7 +1,13 @@
 package grammar
 
 import (
+	"fmt"
+	"log"
+	"os"
+	"os/exec"
 	"proyecto2/parser"
+	"strconv"
+	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
 )
@@ -63,10 +69,20 @@ func (v *Visitor) Visit(tree antlr.ParseTree) Value {
 		return v.VisitIfWithElseIf(val)
 	case *parser.SwitchstmtContext:
 		return v.VisitSwitchstmt(val)
+	case *parser.WhilestmtContext:
+		return v.VisitWhilestmt(val)
 	case *parser.PrintlnstmtContext:
 		return v.VisitPrintlnstmt(val)
 	case *parser.ForWithRangeContext:
 		return v.VisitForWithRange(val)
+	case *parser.GuardstmtContext:
+		return v.VisitGuardstmt(val)
+	case *parser.BreakstmtContext:
+		return v.VisitBreakstmt(val)
+	case *parser.ContinuestmtContext:
+		return v.VisitContinuestmt(val)
+	case *parser.ReturnstmtContext:
+		return v.VisitReturnstmt(val)
 	}
 	return Value{value: "la funcion todavia no se ha implementado"}
 }
@@ -75,11 +91,131 @@ func (v *Visitor) VisitInit(ctx *parser.InitContext) Value {
 	return v.Visit(ctx.Block())
 }
 
+func CreateCST(tree antlr.ParseTree) string {
+	var graph strings.Builder
+	nodeCount := 0
+	graph.WriteString("digraph {\n")
+	generateBody(tree, &graph, &nodeCount)
+	graph.WriteString("}\n")
+	return graph.String()
+}
+func generateBody(node antlr.ParseTree, graph *strings.Builder, nodeCount *int) int {
+	currentNode := *nodeCount
+	*nodeCount++
+	nodeName := fmt.Sprintf("Node%d", currentNode)
+	nodeLabel := convertNodeToStr(node)
+	if nodeLabel != "nil" {
+		graph.WriteString(fmt.Sprintf("  %s [label=\"%s\"];\n", nodeName, nodeLabel))
+		for i := 0; i < node.GetChildCount(); i++ {
+			child := node.GetChild(i).(antlr.ParseTree)
+			childNode := generateBody(child, graph, nodeCount)
+			if childNode != -1 {
+				graph.WriteString(fmt.Sprintf("  %s -> Node%d;\n", nodeName, childNode))
+			}
+		}
+	}
+
+	return currentNode
+}
+
+func convertNodeToStr(node antlr.ParseTree) string {
+	switch node.(type) {
+	case antlr.TerminalNode:
+		text := node.GetText()
+		if strings.Contains(text, "\"") {
+			newText := strings.ReplaceAll(text, "\"", "\\\"")
+			newText = strings.ReplaceAll(newText, "\n", "\\n")
+			newText = strings.ReplaceAll(newText, "\t", "\\t")
+			return newText
+		}
+		_, err := strconv.ParseFloat(text, 64)
+		if err == nil {
+			return text
+		}
+		return text
+	default:
+		return fmt.Sprintf("%T", node)
+	}
+}
+
+func GenerateHTMLERROR(v *Visitor) {
+	var graph strings.Builder
+	graph.WriteString("<!DOCTYPE html>\n")
+	graph.WriteString("<html lang=\"en\">\n")
+	graph.WriteString("<head>\n")
+	graph.WriteString("<meta charset=\"UTF-8\">\n")
+	graph.WriteString("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n")
+	graph.WriteString("<title>Tabla de Errores</title>\n")
+	graph.WriteString("<link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css\">\n")
+	graph.WriteString("</head>\n")
+	graph.WriteString("<body>\n")
+	graph.WriteString("<div class=\"container mt-4\">\n")
+	graph.WriteString("<h1>Tabla de Errores</h1>\n")
+	graph.WriteString("<table class=\"table table-striped\">\n")
+	graph.WriteString("<thead><tr>\n")
+	graph.WriteString("<th>descripcion</th><th>linea</th><th>columna</th>\n")
+	graph.WriteString("</tr></head>\n")
+	graph.WriteString("<tbody>\n")
+	for _, element := range v.Errores {
+		graph.WriteString("<tr>")
+		graph.WriteString("<th>")
+		graph.WriteString(element.desc)
+		graph.WriteString("</th>")
+		graph.WriteString("<th>")
+		graph.WriteString(fmt.Sprintf("%v", element.line))
+		graph.WriteString("</th>")
+		graph.WriteString("<th>")
+		graph.WriteString(fmt.Sprintf("%v", element.column))
+		graph.WriteString("</th></tr>\n")
+	}
+	graph.WriteString("</tbody>\n</table>\n</div>\n")
+	graph.WriteString("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js\"></script>\n")
+	graph.WriteString("<script src=\"https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js\"></script>\n")
+	graph.WriteString("<script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js\"></script>\n")
+	graph.WriteString("</body>\n")
+	graph.WriteString("</html>\n")
+	err := os.WriteFile("tablaDeErrores.html", []byte(graph.String()), 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func GenerateHTML(v *Visitor) {
+	for v.Environment.padre != nil {
+		v.Environment = v.Environment.padre
+	}
+	var graph strings.Builder
+	graph.WriteString("<!DOCTYPE html>\n")
+	graph.WriteString("<html lang=\"en\">\n")
+	graph.WriteString("<head>\n")
+	graph.WriteString("<meta charset=\"UTF-8\">\n")
+	graph.WriteString("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n")
+	graph.WriteString("<title>Tabla de Simbolos</title>\n")
+	graph.WriteString("<link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css\">\n")
+	graph.WriteString("</head>\n")
+	graph.WriteString("<body>\n")
+	graph.WriteString("<div class=\"container mt-4\">\n")
+	graph.WriteString("<h1>Tabla de Simbolos</h1>\n")
+	graph.WriteString("<table class=\"table table-striped\">\n")
+	graph.WriteString("<thead><tr>\n")
+	graph.WriteString("<th>Id</th><th>Tipo de dato</th><th>Editable</th><th>Valor</th>\n")
+	graph.WriteString("</tr></head>\n")
+	graph.WriteString("<tbody>\n")
+	graph.WriteString(v.Environment.generateSymbolTable())
+	graph.WriteString("</tbody>\n</table>\n</div>\n")
+	graph.WriteString("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js\"></script>\n")
+	graph.WriteString("<script src=\"https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js\"></script>\n")
+	graph.WriteString("<script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js\"></script>\n")
+	graph.WriteString("</body>\n")
+	graph.WriteString("</html>\n")
+	err := os.WriteFile("tablaDeSimbolos.html", []byte(graph.String()), 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func Execute() {
 	input := `
-	for item in 0...10+2 {
-		print(item)
-	}
 	`
 	inputStream := antlr.NewInputStream(input)
 	lexer := parser.NewGrammarLexer(inputStream)
@@ -88,7 +224,23 @@ func Execute() {
 	p.BuildParseTrees = true
 	tree := p.Init()
 	eval := Visitor{
-		environment: NewEnvironment(nil),
+		Environment: NewEnvironment(nil),
 	}
 	eval.Visit(tree)
+	cst := CreateCST(tree)
+	err := os.WriteFile("cstree.dot", []byte(cst), 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cmd := exec.Command("dot", "-Tpdf", "cstree.dot", "-o", "cstree.pdf")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		fmt.Println("Error al convertir el archivo .dot a .pdf", err.Error())
+		return
+	}
+	GenerateHTML(&eval)
+	GenerateHTMLERROR(&eval)
+	fmt.Println(eval.Errores)
 }

@@ -1,0 +1,11 @@
+.header-div {
+    padding-left: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;;
+    background-color: rgb(42, 42, 42);
+    color: white;
+    font-size: 40px;
+    display: flex;
+    justify-content: flex-start;
+}
+

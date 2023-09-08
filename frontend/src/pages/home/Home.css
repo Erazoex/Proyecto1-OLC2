@@ -1,0 +1,48 @@
+.Home-div {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-color: rgb(61, 61, 61);
+    color: white;
+}
+
+.bloque {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.bloque-botones {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 10px;
+    margin-left: 100px;
+    margin-bottom: 10px;
+
+}
+
+.consola {
+    display: inline-block;
+    border:1px solid rgb(184, 184, 184);
+    margin-top: 10px;
+    margin-left: 50px;
+    margin-bottom: 10px;
+    overflow: scroll;
+    height: 600px;
+    width: 600px;
+    text-align: start;
+}
+
+.text-area {
+    background-color: inherit;
+    color: white;
+    font-size: large;
+    margin: 10px;
+}
+
+label {
+    cursor: pointer;
+    font-size: 15px;
+    /* Style as you please, it will become the visible UI component. */
+ }

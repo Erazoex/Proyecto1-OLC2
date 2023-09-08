@@ -1,0 +1,13 @@
+.boton-normal {
+    background-color: rgb(58, 167, 58);
+    padding: 7px;
+    color: white;
+    width: 60px;
+    height: 30px;
+    border-radius: 5px;
+    border: none;
+}
+
+.boton-normal:hover {
+    background-color: rgb(97, 182, 97);
+}

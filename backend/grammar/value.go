@@ -1,5 +1,7 @@
 package grammar
 
+import "proyecto2/parser"
+
 type Value struct {
 	value    interface{}
 	Id       string
@@ -8,9 +10,14 @@ type Value struct {
 }
 
 type Function struct {
-	Type       DataType
-	Id         string
-	parametros []any
+	Type DataType
+	Id   string
+	Ctx  *parser.FuncstmtContext
+}
+
+type Parameter struct {
+	Type DataType
+	Id   string
 }
 
 type error struct {

@@ -80,6 +80,18 @@ func (v *BaseGrammarVisitor) VisitPrintlnstmt(ctx *PrintlnstmtContext) interface
 	return v.VisitChildren(ctx)
 }
 
+func (v *BaseGrammarVisitor) VisitIntstmt(ctx *IntstmtContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGrammarVisitor) VisitFloatstmt(ctx *FloatstmtContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGrammarVisitor) VisitStringstmt(ctx *StringstmtContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
 func (v *BaseGrammarVisitor) VisitExprWithParams(ctx *ExprWithParamsContext) interface{} {
 	return v.VisitChildren(ctx)
 }
@@ -116,11 +128,27 @@ func (v *BaseGrammarVisitor) VisitArray_def(ctx *Array_defContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 
-func (v *BaseGrammarVisitor) VisitPrimitiveType(ctx *PrimitiveTypeContext) interface{} {
+func (v *BaseGrammarVisitor) VisitFuncstmt(ctx *FuncstmtContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 
-func (v *BaseGrammarVisitor) VisitDoubleExpr(ctx *DoubleExprContext) interface{} {
+func (v *BaseGrammarVisitor) VisitFuncParameters(ctx *FuncParametersContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGrammarVisitor) VisitFuncParameter(ctx *FuncParameterContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGrammarVisitor) VisitParametro(ctx *ParametroContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGrammarVisitor) VisitCallstmt(ctx *CallstmtContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGrammarVisitor) VisitPrimitiveType(ctx *PrimitiveTypeContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 
@@ -132,19 +160,11 @@ func (v *BaseGrammarVisitor) VisitIdExpr(ctx *IdExprContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 
-func (v *BaseGrammarVisitor) VisitParExpr(ctx *ParExprContext) interface{} {
+func (v *BaseGrammarVisitor) VisitStringConvExpr(ctx *StringConvExprContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 
-func (v *BaseGrammarVisitor) VisitStrExpr(ctx *StrExprContext) interface{} {
-	return v.VisitChildren(ctx)
-}
-
-func (v *BaseGrammarVisitor) VisitNotExpr(ctx *NotExprContext) interface{} {
-	return v.VisitChildren(ctx)
-}
-
-func (v *BaseGrammarVisitor) VisitIntExpr(ctx *IntExprContext) interface{} {
+func (v *BaseGrammarVisitor) VisitIntConvExpr(ctx *IntConvExprContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 
@@ -161,5 +181,33 @@ func (v *BaseGrammarVisitor) VisitUnaryExpr(ctx *UnaryExprContext) interface{} {
 }
 
 func (v *BaseGrammarVisitor) VisitCharExpr(ctx *CharExprContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGrammarVisitor) VisitDoubleExpr(ctx *DoubleExprContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGrammarVisitor) VisitParExpr(ctx *ParExprContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGrammarVisitor) VisitStrExpr(ctx *StrExprContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGrammarVisitor) VisitFloatConvExpr(ctx *FloatConvExprContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGrammarVisitor) VisitNotExpr(ctx *NotExprContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGrammarVisitor) VisitIntExpr(ctx *IntExprContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGrammarVisitor) VisitCallExpr(ctx *CallExprContext) interface{} {
 	return v.VisitChildren(ctx)
 }

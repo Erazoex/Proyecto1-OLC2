@@ -129,10 +129,62 @@ func (v *Visitor) VisitExprWithParams(ctx *parser.ExprWithParamsContext) Value {
 
 func (v *Visitor) VisitExprWithParam(ctx *parser.ExprWithParamContext) Value {
 	expr := v.Visit(ctx.Expr())
+	var array []Value
+	array = append(array, expr)
 	return Value{
-		value: []Value{
-			expr,
-		},
-		Type: expr.Type,
+		value: array,
+		Type:  expr.Type,
 	}
+}
+
+func (v *Visitor) VisitFuncParameters(ctx *parser.FuncParametersContext) Value {
+	exprWithParameter := v.Visit(ctx.Parametro())
+	var newSlice []Parameter
+	newSlice = append(newSlice, exprWithParameter.value.(Parameter))
+	exprSlice := v.Visit(ctx.Listaparametros())
+	newSlice = append(newSlice, exprSlice.value.([]Parameter)...)
+	return Value{
+		value: newSlice,
+		Type:  ACCEPTED,
+	}
+}
+
+func (v *Visitor) VisitFuncParameter(ctx *parser.FuncParameterContext) Value {
+	exprWithParameter := v.Visit(ctx.Parametro())
+	var array []Parameter
+	array = append(array, exprWithParameter.value.(Parameter))
+	return Value{
+		value: array,
+		Type:  ACCEPTED,
+	}
+}
+
+// PARAMETRO
+func (v *Visitor) VisitParametro(ctx *parser.ParametroContext) Value {
+	varId := ctx.GetVarId().GetText()
+	varType := v.Visit(ctx.Vartype())
+	newParam := Parameter{
+		Id:   varId,
+		Type: varType.Type,
+	}
+	return Value{
+		value: newParam,
+	}
+
+}
+
+func (v *Visitor) VisitIntConvExpr(ctx *parser.IntConvExprContext) Value {
+	return v.Visit(ctx.Intstmt())
+}
+
+func (v *Visitor) VisitFloatConvExpr(ctx *parser.FloatConvExprContext) Value {
+	return v.Visit(ctx.Floatstmt())
+}
+
+func (v *Visitor) VisitStringConvExpr(ctx *parser.StringConvExprContext) Value {
+	return v.Visit(ctx.Stringstmt())
+}
+
+func (v *Visitor) VisitCallExpr(ctx *parser.CallExprContext) Value {
+	return v.Visit(ctx.Callstmt())
 }

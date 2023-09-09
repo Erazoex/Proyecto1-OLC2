@@ -3,6 +3,7 @@ package grammar
 import (
 	"fmt"
 	"proyecto2/parser"
+	"strconv"
 )
 
 func (v *Visitor) VisitStmt(ctx *parser.StmtContext) Value {
@@ -45,6 +46,12 @@ func (v *Visitor) VisitStmt(ctx *parser.StmtContext) Value {
 	if ctx.Returnstmt() != nil {
 		return v.Visit(ctx.Returnstmt())
 	}
+	if ctx.Funcstmt() != nil {
+		return v.Visit(ctx.Funcstmt())
+	}
+	if ctx.Callstmt() != nil {
+		return v.Visit(ctx.Callstmt())
+	}
 	return Value{value: true, Type: ACCEPTED}
 }
 
@@ -61,8 +68,15 @@ func (v *Visitor) VisitContinuestmt(ctx *parser.ContinuestmtContext) Value {
 }
 
 func (v *Visitor) VisitReturnstmt(ctx *parser.ReturnstmtContext) Value {
+	if ctx.Expr() != nil {
+		return Value{
+			value: v.Visit(ctx.Expr()),
+			Type:  RETURN,
+		}
+	}
 	return Value{
-		Type: RETURN,
+		value: nil,
+		Type:  RETURN,
 	}
 }
 
@@ -362,7 +376,9 @@ func (v *Visitor) VisitSwitchstmt(ctx *parser.SwitchstmtContext) Value {
 // PRINTLN
 func (v *Visitor) VisitPrintlnstmt(ctx *parser.PrintlnstmtContext) Value {
 	if ctx.Exprparams() != nil {
-		for _, item := range v.Visit(ctx.Exprparams()).value.([]Value) {
+		myValue := v.Visit(ctx.Exprparams())
+		valueArray := myValue.value.([]Value)
+		for _, item := range valueArray {
 			v.Print(fmt.Sprintf("%v", item.value))
 			fmt.Print(item.value, " ")
 		}
@@ -538,4 +554,202 @@ func (v *Visitor) VisitGuardstmt(ctx *parser.GuardstmtContext) Value {
 		return Value{Type: ERROR}
 	}
 	return Value{Type: ACCEPTED}
+}
+
+// FUNCIONES EMBEBIDAS
+func (v *Visitor) VisitIntstmt(ctx *parser.IntstmtContext) Value {
+	expr := v.Visit(ctx.Expr())
+	if expr.Type == STRING {
+		value, _ := strconv.Atoi(expr.value.(string))
+		return Value{
+			value: int64(value),
+			Type:  INT,
+		}
+	}
+	if expr.Type == FLOAT {
+		return Value{
+			value: int64(expr.value.(float64)),
+			Type:  INT,
+		}
+	}
+	v.push(error{
+		desc:   "el tipo de expresion no se puede convertir en int",
+		line:   ctx.GetStart().GetLine(),
+		column: ctx.GetStart().GetColumn(),
+	})
+	return Value{Type: NIL}
+}
+
+func (v *Visitor) VisitFloatstmt(ctx *parser.FloatstmtContext) Value {
+	expr := v.Visit(ctx.Expr())
+	if expr.Type == STRING {
+		value, _ := strconv.ParseFloat(expr.value.(string), 64)
+		return Value{
+			value: value,
+			Type:  FLOAT,
+		}
+	}
+	if expr.Type == INT {
+		return Value{
+			value: float64(expr.value.(int64)),
+			Type:  FLOAT,
+		}
+	}
+	v.push(error{
+		desc:   "el tipo de expresion no se puede convertir en float",
+		line:   ctx.GetStart().GetLine(),
+		column: ctx.GetStart().GetColumn(),
+	})
+	return Value{Type: NIL}
+}
+
+func (v *Visitor) VisitStringstmt(ctx *parser.StringstmtContext) Value {
+	expr := v.Visit(ctx.Expr())
+	if expr.Type == INT || expr.Type == FLOAT || expr.Type == BOOL {
+		return Value{
+			value: fmt.Sprintf("%v", expr.value),
+			Type:  STRING,
+		}
+	}
+	v.push(error{
+		desc:   "el tipo de expresion no se puede convertir en string",
+		line:   ctx.GetStart().GetLine(),
+		column: ctx.GetStart().GetColumn(),
+	})
+	return Value{Type: NIL}
+}
+
+// FUNCION
+func (v *Visitor) VisitFuncstmt(ctx *parser.FuncstmtContext) Value {
+	id := ctx.ID().GetText()
+	var returnType DataType
+	returnType = VOID
+	if ctx.Vartype() != nil {
+		funcType := ctx.Vartype().GetText()
+		switch funcType {
+		case "Int":
+			returnType = INT
+		case "Float":
+			returnType = FLOAT
+		case "String":
+			returnType = STRING
+		case "Bool":
+			returnType = BOOL
+		case "Character":
+			returnType = CHAR
+		default:
+			returnType = VOID
+		}
+	}
+
+	result := v.Environment.SaveFunc(Function{
+		Id:   id,
+		Type: returnType,
+		Ctx:  ctx,
+	})
+	if result {
+		return Value{Type: ACCEPTED}
+	}
+	v.push(error{
+		desc:   "ya existe una funcion con ese nombre",
+		line:   ctx.GetStart().GetLine(),
+		column: ctx.GetStart().GetColumn(),
+	})
+	return Value{Type: ERROR}
+}
+
+func (v *Visitor) VisitCallstmt(ctx *parser.CallstmtContext) Value {
+	id := ctx.ID().GetText()
+	funcion, ok := v.Environment.GetFunc(id)
+	if !ok {
+		v.push(error{
+			desc:   "la funcion no existe",
+			line:   ctx.GetStart().GetLine(),
+			column: ctx.GetStart().GetColumn(),
+		})
+		return Value{}
+	}
+	Llamada := v.Visit(ctx.Exprparams())
+	parametrosLlamada := Llamada.value.([]Value)
+	newEnv := NewEnvironment(v.Environment)
+	v.Environment.push(newEnv)
+	v.Environment = newEnv
+	var parametros []Parameter
+	if funcion.Ctx.Listaparametros() != nil {
+		parametros = v.Visit(funcion.Ctx.Listaparametros()).value.([]Parameter)
+	}
+	if !(parametrosLlamada != nil && parametros != nil) {
+		if ctx.Exprparams() != nil {
+			v.push(error{
+				desc:   "la llamada tiene parametros pero la funcion no",
+				line:   ctx.GetStart().GetLine(),
+				column: ctx.GetStart().GetColumn(),
+			})
+			return Value{}
+		}
+		if parametros != nil {
+			v.push(error{
+				desc:   "la llamada tiene parametros pero la funcion no",
+				line:   ctx.GetStart().GetLine(),
+				column: ctx.GetStart().GetColumn(),
+			})
+			return Value{}
+		}
+	}
+	if len(parametros) != len(parametrosLlamada) {
+		v.push(error{
+			desc:   "la llamada tiene parametros pero la funcion no",
+			line:   ctx.GetStart().GetLine(),
+			column: ctx.GetStart().GetColumn(),
+		})
+		return Value{}
+	}
+	for i := 0; i < len(parametros); i++ {
+		if parametros[i].Type != parametrosLlamada[i].Type {
+			v.push(error{
+				desc:   "el tipo de los parametros no coincide",
+				line:   ctx.GetStart().GetLine(),
+				column: ctx.GetStart().GetColumn(),
+			})
+			return Value{}
+		}
+		v.Environment.SaveValue(Value{
+			Id:    parametros[i].Id,
+			value: parametrosLlamada[i].value,
+			Type:  parametros[i].Type,
+		})
+	}
+	if funcion.Type != VOID {
+		result := v.Visit(funcion.Ctx.Block())
+		if result.Type != RETURN {
+			v.push(error{
+				desc:   "no se encontro un return en la funcion",
+				line:   ctx.GetStart().GetLine(),
+				column: ctx.GetStart().GetColumn(),
+			})
+			return Value{}
+		}
+		if result.value == nil {
+			v.push(error{
+				desc:   "no se encontro un valor para retornar",
+				line:   ctx.GetStart().GetLine(),
+				column: ctx.GetStart().GetColumn(),
+			})
+			return Value{}
+		}
+		if result.value.(Value).Type != funcion.Type {
+			v.push(error{
+				desc:   "el valor de retorno no es del mismo tipo que ",
+				line:   ctx.GetStart().GetLine(),
+				column: ctx.GetStart().GetColumn(),
+			})
+			return Value{}
+		}
+		return Value{
+			value: result.value.(Value).value,
+			Type:  funcion.Type,
+		}
+	}
+
+	return Value{}
 }

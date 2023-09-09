@@ -12,6 +12,7 @@ import (
 
 	"github.com/antlr4-go/antlr/v4"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
@@ -51,7 +52,9 @@ func (s *APIServer) Run() {
 
 	log.Println("API server running on port:", s.listenAddr)
 
-	http.ListenAndServe(s.listenAddr, router)
+	c := cors.AllowAll()
+	handleCORS := c.Handler(router)
+	http.ListenAndServe(s.listenAddr, handleCORS)
 }
 
 func createAPIServer(listenAddr string) *APIServer {

@@ -9,7 +9,7 @@ export function Home() {
     const [archivo, setArchivo] = useState("");
     const [consola, setConsola] = useState("");
     const api = axios.create({
-        baseURL: `http://localhost:5000/`
+        baseURL: `http://localhost:4200/`
     })
 
     useEffect(() => {
@@ -32,13 +32,13 @@ export function Home() {
 
     function sendGetRequest(cadena) {
         new Promise(()=> {
-            api.get('/parse', {
+            api.get('/gramatica', {
                 params: {
                     gramatica: cadena
                 }
             }).then(res => {
                 // res.data
-                addConsola(res.data.consola + res.data.errores)
+                addConsola(res.data)
             }).catch(err => console.log(err))
         })
     }

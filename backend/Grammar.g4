@@ -57,6 +57,8 @@ stmt
     | breakstmt
     | continuestmt
     | returnstmt
+    | funcstmt
+    | callstmt
     ;
 
 breakstmt
@@ -99,7 +101,6 @@ switchstmt
     : SWITCH expr '{' (switchcase)+ '}'
     ;
 
-
 switchcase
     : casetype=CASE expr ':' block
     | casetype=DEFAULT ':' block
@@ -107,6 +108,18 @@ switchcase
 
 printlnstmt
     : 'print' '(' (exprparams)? ')'
+    ;
+
+intstmt
+    : 'Int' '(' expr ')'
+    ;
+
+floatstmt
+    : 'Float' '(' expr ')'
+    ;
+
+stringstmt
+    : 'String' '(' expr ')'
     ;
 
 exprparams
@@ -139,6 +152,23 @@ array_def
     : '=' (expr)*
     ;
 
+funcstmt
+    : 'func' ID '(' (listaparametros)? ')' ('->' vartype)? '{' block '}'
+    ;
+
+listaparametros
+    : parametro ',' listaparametros         # funcParameters
+    | parametro                             # funcParameter
+    ;
+
+parametro
+    : (extVarId=ID)? varId=ID ':' vartype
+    ;
+
+callstmt
+    : ID '(' exprparams ')'
+    ;
+
 vartype
     : tipo=T_INT        # primitiveType
     | tipo=T_FLOAT      # primitiveType
@@ -165,4 +195,8 @@ expr
     | STRING                                    # StrExpr
     | ('true'|'false')                          # BoolExpr
     | 'nil'                                     # nilExpr
+    | intstmt                                   # IntConvExpr
+    | floatstmt                                 # FloatConvExpr
+    | stringstmt                                # StringConvExpr
+    | callstmt                                  # callExpr
     ;

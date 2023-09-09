@@ -116,6 +116,35 @@ func (e *Environment) GetValueInCurrentEnvironment(id string) (Value, bool) {
 	return val, ok
 }
 
+// funciones de funcion
+func (e *Environment) SaveFunc(newFunc Function) bool {
+	if e.SearchFunc(newFunc.Id) {
+		// la funcion ya existe
+		return false
+	}
+	e.tablaSimbolos_metodos[newFunc.Id] = newFunc
+	return true
+}
+
+func (e *Environment) GetFunc(id string) (Function, bool) {
+	var val Function
+	var ok bool
+	temp := e
+	for temp != nil {
+		val, ok = temp.tablaSimbolos_metodos[id]
+		if ok {
+			return val, ok
+		}
+		temp = temp.padre
+	}
+	return val, ok
+}
+
+func (e *Environment) SearchFunc(id string) bool {
+	_, ok := e.tablaSimbolos_metodos[id]
+	return ok
+}
+
 func (e *Environment) generateSymbolTable() string {
 	var graph strings.Builder
 	if e == nil {

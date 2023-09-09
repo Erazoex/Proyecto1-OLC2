@@ -62,6 +62,15 @@ type GrammarVisitor interface {
 	// Visit a parse tree produced by GrammarParser#printlnstmt.
 	VisitPrintlnstmt(ctx *PrintlnstmtContext) interface{}
 
+	// Visit a parse tree produced by GrammarParser#intstmt.
+	VisitIntstmt(ctx *IntstmtContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#floatstmt.
+	VisitFloatstmt(ctx *FloatstmtContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#stringstmt.
+	VisitStringstmt(ctx *StringstmtContext) interface{}
+
 	// Visit a parse tree produced by GrammarParser#exprWithParams.
 	VisitExprWithParams(ctx *ExprWithParamsContext) interface{}
 
@@ -89,11 +98,23 @@ type GrammarVisitor interface {
 	// Visit a parse tree produced by GrammarParser#array_def.
 	VisitArray_def(ctx *Array_defContext) interface{}
 
+	// Visit a parse tree produced by GrammarParser#funcstmt.
+	VisitFuncstmt(ctx *FuncstmtContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#funcParameters.
+	VisitFuncParameters(ctx *FuncParametersContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#funcParameter.
+	VisitFuncParameter(ctx *FuncParameterContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#parametro.
+	VisitParametro(ctx *ParametroContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#callstmt.
+	VisitCallstmt(ctx *CallstmtContext) interface{}
+
 	// Visit a parse tree produced by GrammarParser#primitiveType.
 	VisitPrimitiveType(ctx *PrimitiveTypeContext) interface{}
-
-	// Visit a parse tree produced by GrammarParser#DoubleExpr.
-	VisitDoubleExpr(ctx *DoubleExprContext) interface{}
 
 	// Visit a parse tree produced by GrammarParser#BoolExpr.
 	VisitBoolExpr(ctx *BoolExprContext) interface{}
@@ -101,17 +122,11 @@ type GrammarVisitor interface {
 	// Visit a parse tree produced by GrammarParser#IdExpr.
 	VisitIdExpr(ctx *IdExprContext) interface{}
 
-	// Visit a parse tree produced by GrammarParser#ParExpr.
-	VisitParExpr(ctx *ParExprContext) interface{}
+	// Visit a parse tree produced by GrammarParser#StringConvExpr.
+	VisitStringConvExpr(ctx *StringConvExprContext) interface{}
 
-	// Visit a parse tree produced by GrammarParser#StrExpr.
-	VisitStrExpr(ctx *StrExprContext) interface{}
-
-	// Visit a parse tree produced by GrammarParser#NotExpr.
-	VisitNotExpr(ctx *NotExprContext) interface{}
-
-	// Visit a parse tree produced by GrammarParser#IntExpr.
-	VisitIntExpr(ctx *IntExprContext) interface{}
+	// Visit a parse tree produced by GrammarParser#IntConvExpr.
+	VisitIntConvExpr(ctx *IntConvExprContext) interface{}
 
 	// Visit a parse tree produced by GrammarParser#nilExpr.
 	VisitNilExpr(ctx *NilExprContext) interface{}
@@ -124,4 +139,25 @@ type GrammarVisitor interface {
 
 	// Visit a parse tree produced by GrammarParser#CharExpr.
 	VisitCharExpr(ctx *CharExprContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#DoubleExpr.
+	VisitDoubleExpr(ctx *DoubleExprContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#ParExpr.
+	VisitParExpr(ctx *ParExprContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#StrExpr.
+	VisitStrExpr(ctx *StrExprContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#FloatConvExpr.
+	VisitFloatConvExpr(ctx *FloatConvExprContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#NotExpr.
+	VisitNotExpr(ctx *NotExprContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#IntExpr.
+	VisitIntExpr(ctx *IntExprContext) interface{}
+
+	// Visit a parse tree produced by GrammarParser#callExpr.
+	VisitCallExpr(ctx *CallExprContext) interface{}
 }

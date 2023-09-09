@@ -14,5 +14,5 @@ const (
 	BREAK
 	CONTINUE
 	RETURN
-	TUPLE
+	VOID
 )

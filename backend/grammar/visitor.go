@@ -83,6 +83,30 @@ func (v *Visitor) Visit(tree antlr.ParseTree) Value {
 		return v.VisitContinuestmt(val)
 	case *parser.ReturnstmtContext:
 		return v.VisitReturnstmt(val)
+	case *parser.IntstmtContext:
+		return v.VisitIntstmt(val)
+	case *parser.IntConvExprContext:
+		return v.VisitIntConvExpr(val)
+	case *parser.FloatstmtContext:
+		return v.VisitFloatstmt(val)
+	case *parser.FloatConvExprContext:
+		return v.VisitFloatConvExpr(val)
+	case *parser.StringstmtContext:
+		return v.VisitStringstmt(val)
+	case *parser.StringConvExprContext:
+		return v.VisitStringConvExpr(val)
+	case *parser.ParametroContext:
+		return v.VisitParametro(val)
+	case *parser.FuncParametersContext:
+		return v.VisitFuncParameters(val)
+	case *parser.FuncParameterContext:
+		return v.VisitFuncParameter(val)
+	case *parser.FuncstmtContext:
+		return v.VisitFuncstmt(val)
+	case *parser.CallstmtContext:
+		return v.VisitCallstmt(val)
+	case *parser.CallExprContext:
+		return v.VisitCallExpr(val)
 	}
 	return Value{value: "la funcion todavia no se ha implementado"}
 }
